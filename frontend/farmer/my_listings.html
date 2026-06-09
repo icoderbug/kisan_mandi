@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Listings — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #f0fdf4; color: #16a34a; }
+    .nav-item.active { background: #f0fdf4; color: #16a34a; font-weight: 500; }
+    .badge-active  { background: #f0fdf4; color: #16a34a; border: 0.5px solid #bbf7d0; }
+    .badge-sold    { background: #eff6ff; color: #2563eb; border: 0.5px solid #bfdbfe; }
+    .badge-expired { background: #fef2f2; color: #ef4444; border: 0.5px solid #fecaca; }
+    .filter-active { background: #f0fdf4 !important; color: #16a34a !important; border-color: #bbf7d0 !important; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="nav-avatar" class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="add_crop.html" class="nav-item">➕ Add crop</a>
+        <a href="my_listings.html" class="nav-item active">🌾 My listings</a>
+        <a href="my_bids.html" class="nav-item">🔨 Bids</a>
+        <a href="my_orders.html" class="nav-item">📦 Orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" onclick="logout()" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <h1 class="text-lg font-semibold text-gray-900">My listings</h1>
+          <p id="listings-summary" class="text-xs text-gray-400 mt-1"></p>
+        </div>
+        <a href="add_crop.html"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+          ➕ Add new crop
+        </a>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="flex gap-2 mb-5 mt-4 flex-wrap">
+        <button onclick="filterListings('all')"     id="filter-all"     class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition filter-active">All</button>
+        <button onclick="filterListings('ACTIVE')"  id="filter-active"  class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Active</button>
+        <button onclick="filterListings('SOLD')"    id="filter-sold"    class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Sold</button>
+        <button onclick="filterListings('EXPIRED')" id="filter-expired" class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Expired</button>
+      </div>
+
+      <!-- LISTINGS CONTAINER -->
+      <div id="listings-container" class="flex flex-col gap-4"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">🌾</div>
+        <p class="text-sm font-medium text-gray-600">No listings found</p>
+        <p class="text-xs text-gray-400 mt-1 mb-4">You have no crops in this category</p>
+        <a href="add_crop.html" class="bg-green-600 text-white px-5 py-2 rounded-lg text-sm">Add your first crop</a>
+      </div>
+
+    </main>
+  </div>
+<script src="../js/toast.js"></script>
+<!-- api.js MUST be loaded first -->
+<script src="../js/api.js"></script>
+<script>
+
+  let listings = []
+  let currentFilter = "all"
+
+  // get crop emoji based on name
+  function getCropEmoji(name) {
+    const n = name?.toLowerCase() || ""
+    if (n.includes("wheat"))  return "🌾"
+    if (n.includes("tomato")) return "🍅"
+    if (n.includes("maize") || n.includes("corn")) return "🌽"
+    if (n.includes("onion"))  return "🧅"
+    if (n.includes("potato")) return "🥔"
+    if (n.includes("rice"))   return "🌾"
+    return "🌱"
+  }
+
+  function getBadgeClass(status) {
+    if (status === "ACTIVE")  return "badge-active"
+    if (status === "SOLD")    return "badge-sold"
+    if (status === "EXPIRED") return "badge-expired"
+    return ""
+  }
+
+  function getTimeLeft(bidEndTime) {
+    if (!bidEndTime) return "—"
+    const diff = new Date(bidEndTime) - new Date()
+    if (diff <= 0) return "Closed"
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours < 24) return hours + "h left"
+    const days = Math.floor(hours / 24)
+    return days + "d left"
+  }
+
+  async function loadListings() {
+    // Setup navbar
+    document.getElementById("nav-avatar").textContent   = (getName() || "F")[0].toUpperCase()
+    document.getElementById("nav-name").textContent     = getName() || "Farmer"
+    document.getElementById("nav-location").textContent = "📍 " + (getLocation() || "")
+
+    try {
+      listings = await getMyListings()
+      updateSummary()
+      updateFilterCounts()
+      renderListings()
+    } catch(err) {
+      console.log("Error loading listings:", err)
+      document.getElementById("empty-state").classList.remove("hidden")
+    }
+  }
+
+  function updateSummary() {
+    const total   = listings.length
+    const active  = listings.filter(l => l.status === "ACTIVE").length
+    const sold    = listings.filter(l => l.status === "SOLD").length
+    const expired = listings.filter(l => l.status === "EXPIRED").length
+    document.getElementById("listings-summary").textContent =
+      `${total} total · ${active} active · ${sold} sold · ${expired} expired`
+  }
+
+  function updateFilterCounts() {
+    const active  = listings.filter(l => l.status === "ACTIVE").length
+    const sold    = listings.filter(l => l.status === "SOLD").length
+    const expired = listings.filter(l => l.status === "EXPIRED").length
+    document.getElementById("filter-all").textContent     = `All (${listings.length})`
+    document.getElementById("filter-active").textContent  = `Active (${active})`
+    document.getElementById("filter-sold").textContent    = `Sold (${sold})`
+    document.getElementById("filter-expired").textContent = `Expired (${expired})`
+  }
+
+  function filterListings(filter) {
+    currentFilter = filter
+    document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("filter-active"))
+    const btnId = filter === "all" ? "filter-all"
+      : filter === "ACTIVE" ? "filter-active"
+      : filter === "SOLD"   ? "filter-sold"
+      : "filter-expired"
+    document.getElementById(btnId).classList.add("filter-active")
+    renderListings()
+  }
+
+  function renderListings() {
+    const filtered = currentFilter === "all"
+      ? listings
+      : listings.filter(l => l.status === currentFilter)
+
+    const container  = document.getElementById("listings-container")
+    const emptyState = document.getElementById("empty-state")
+
+    if (filtered.length === 0) {
+      container.innerHTML = ""
+      emptyState.classList.remove("hidden")
+      return
+    }
+
+    emptyState.classList.add("hidden")
+    container.innerHTML = filtered.map(crop => `
+      <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">${getCropEmoji(crop.name)}</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-900">${crop.name} — ${crop.quantity} ${crop.unit}</p>
+              <p class="text-xs text-gray-400 mt-0.5">📍 ${crop.state || crop.district || "N/A"}</p>
+            </div>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full ${getBadgeClass(crop.status)}">
+            ${crop.status}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 py-3 border-t border-b border-gray-50 mb-3">
+          <div class="text-center">
+            <p class="text-sm font-semibold text-gray-900">₹${(crop.highestBid || crop.basePrice).toLocaleString()}</p>
+            <p class="text-xs text-gray-400 mt-0.5">${crop.status === 'SOLD' ? 'Final price' : 'Highest bid'}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-semibold text-gray-900">${crop.totalBids || 0}</p>
+            <p class="text-xs text-gray-400 mt-0.5">Total bids</p>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-semibold text-gray-900">₹${(crop.basePrice || 0).toLocaleString()}</p>
+            <p class="text-xs text-gray-400 mt-0.5">Base price</p>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-semibold text-gray-900">${getTimeLeft(crop.bidEndTime)}</p>
+            <p class="text-xs text-gray-400 mt-0.5">Time left</p>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          ${crop.status === 'ACTIVE' ? `
+            <button class="flex-1 border border-green-500 text-green-600 hover:bg-green-50 py-2 rounded-lg text-xs transition"
+              onclick="window.location.href='my_bids.html'">View bids</button>
+            <button class="border border-red-100 text-red-400 hover:bg-red-50 px-3 py-2 rounded-lg text-xs transition"
+              onclick="deleteListingById('${crop.id}')">🗑</button>
+          ` : crop.status === 'SOLD' ? `
+            <button class="flex-1 border border-blue-200 text-blue-500 hover:bg-blue-50 py-2 rounded-lg text-xs transition"
+              onclick="window.location.href='my_orders.html'">View order</button>
+          ` : `
+            <button class="flex-1 border border-green-500 text-green-600 hover:bg-green-50 py-2 rounded-lg text-xs transition"
+              onclick="window.location.href='add_crop.html'">Relist crop</button>
+            <button class="border border-red-100 text-red-400 hover:bg-red-50 px-3 py-2 rounded-lg text-xs transition"
+              onclick="deleteListingById('${crop.id}')">🗑</button>
+          `}
+        </div>
+      </div>
+    `).join("")
+  }
+
+  async function deleteListingById(id) {
+    if (confirm("Are you sure you want to delete this listing?")) {
+      try {
+        await deleteCrop(id)
+        await loadListings()
+      } catch(err) {
+        toast.error("Failed to delete. Try again!")
+      }
+    }
+  }
+
+  loadListings()
+</script>
+</body>
+</html>

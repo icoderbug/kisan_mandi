@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buyer Dashboard — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #fef9f0; color: #d97706; }
+    .nav-item.active { background: #fef9f0; color: #d97706; font-weight: 500; }
+    .badge-winning { background: #f0fdf4; color: #16a34a; border: 0.5px solid #bbf7d0; }
+    .badge-outbid  { background: #fef2f2; color: #ef4444; border: 0.5px solid #fecaca; }
+    .badge-won     { background: #eff6ff; color: #2563eb; border: 0.5px solid #bfdbfe; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="browse_crops.html"
+        class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-full transition font-medium">
+        🌾 Browse crops
+      </a>
+      <div id="nav-avatar" class="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center text-amber-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+        <a href="browse_crops.html" class="nav-item">🌾 Browse crops</a>
+        <a href="my_bids.html" class="nav-item">🔨 My bids</a>
+        <a href="my_orders.html" class="nav-item">📦 My orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+
+      <!-- HERO CARD -->
+      <div class="rounded-2xl p-6 mb-6 flex items-center justify-between" style="background:linear-gradient(135deg,#d97706,#f59e0b)">
+        <div>
+          <h1 id="greeting-text" class="text-base font-semibold text-white mb-1"></h1>
+          <p class="text-xs text-amber-100 mb-4">Find fresh crops directly from farmers across India</p>
+          <a href="browse_crops.html"
+            class="bg-white text-amber-600 text-xs font-semibold px-5 py-2 rounded-full hover:bg-amber-50 transition">
+            Browse all crops →
+          </a>
+        </div>
+        <div class="text-6xl">🛒</div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-lg">🔨</div>
+          <div>
+            <div id="stat-bids" class="text-xl font-semibold text-gray-900"></div>
+            <div class="text-xs text-gray-400 mt-0.5">Active bids</div>
+          </div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center text-lg">🏆</div>
+          <div>
+            <div id="stat-winning" class="text-xl font-semibold text-gray-900"></div>
+            <div class="text-xs text-gray-400 mt-0.5">Bids winning</div>
+          </div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-lg">📦</div>
+          <div>
+            <div id="stat-orders" class="text-xl font-semibold text-gray-900"></div>
+            <div class="text-xs text-gray-400 mt-0.5">Orders placed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TWO COLUMN -->
+      <div class="grid grid-cols-2 gap-5">
+
+        <!-- CROPS NEAR YOU -->
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-medium text-gray-700">Crops near you</p>
+            <a href="browse_crops.html" class="text-xs text-amber-600 hover:underline">View all →</a>
+          </div>
+          <div id="nearby-crops">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <!-- MY BIDS -->
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-medium text-gray-700">My bids</p>
+            <a href="my_bids.html" class="text-xs text-amber-600 hover:underline">View all →</a>
+          </div>
+          <div id="my-bids">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  
+  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+
+<script>
+  async function loadDashboard() {
+    document.getElementById("nav-avatar").textContent   = (getName() || "B")[0].toUpperCase()
+    document.getElementById("nav-name").textContent     = getName() || "Buyer"
+    document.getElementById("nav-location").textContent = "📍 " + (getLocation() || "")
+    document.getElementById("greeting-text").textContent =
+      getGreeting() + ", " + (getName() || "Buyer") + " 👋"
+
+    try {
+      const [crops, bids, orders] = await Promise.all([
+        browseCrops(),
+        getMyBids(),
+        getBuyerOrders()
+      ])
+
+      document.getElementById("stat-bids").textContent    = bids.length
+      document.getElementById("stat-winning").textContent = bids.filter(b => b.isHighest).length
+      document.getElementById("stat-orders").textContent  = orders.length
+
+      // Nearby crops
+      document.getElementById("nearby-crops").innerHTML = crops.slice(0,3).map((c,i) => `
+        <div class="flex items-center justify-between py-3 ${i < 2 ? 'border-b border-gray-50' : ''}">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">${getCropEmoji(c.name)}</span>
+            <div>
+              <p class="text-xs font-medium text-gray-900">${c.name} — ${c.quantity} ${c.unit}</p>
+              <p class="text-xs text-gray-400 mt-0.5">📍 ${c.state}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-semibold text-green-600">₹${(c.highestBid||c.basePrice).toLocaleString()}/qtl</p>
+            <button onclick="window.location.href='browse_crops.html'"
+              class="mt-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+              Bid now
+            </button>
+          </div>
+        </div>
+      `).join("")
+
+      // My bids
+      document.getElementById("my-bids").innerHTML = bids.slice(0,3).map((b,i) => `
+        <div class="flex items-center justify-between py-3 ${i < 2 ? 'border-b border-gray-50' : ''}">
+          <div>
+            <p class="text-xs font-medium text-gray-900">${getCropEmoji(b.cropName)} ${b.cropName}</p>
+            <p class="text-xs text-gray-400 mt-0.5">My bid: ₹${b.amount.toLocaleString()}/qtl</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-semibold text-amber-600">₹${b.amount.toLocaleString()}</p>
+            <span class="text-xs px-2 py-0.5 rounded-full mt-1 inline-block
+              ${b.isHighest ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-500 border border-red-100'}">
+              ${b.isHighest ? 'Winning 🟢' : 'Outbid ❌'}
+            </span>
+          </div>
+        </div>
+      `).join("")
+
+    } catch(err) {
+      console.log("Error:", err)
+    }
+  }
+
+  function getGreeting() {
+    const h = new Date().getHours()
+    if (h < 12) return "Good morning"
+    if (h < 17) return "Good afternoon"
+    return "Good evening"
+  }
+
+  function getCropEmoji(name) {
+    const n = (name||"").toLowerCase()
+    if (n.includes("wheat"))  return "🌾"
+    if (n.includes("tomato")) return "🍅"
+    if (n.includes("maize"))  return "🌽"
+    if (n.includes("onion"))  return "🧅"
+    if (n.includes("potato")) return "🥔"
+    return "🌱"
+  }
+
+  loadDashboard()
+</script>
+</body>
+</html>

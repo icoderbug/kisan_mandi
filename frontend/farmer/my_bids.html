@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Incoming Bids — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #f0fdf4; color: #16a34a; }
+    .nav-item.active { background: #f0fdf4; color: #16a34a; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="nav-avatar" class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="add_crop.html" class="nav-item">➕ Add crop</a>
+        <a href="my_listings.html" class="nav-item">🌾 My listings</a>
+        <a href="my_bids.html" class="nav-item active">🔨 Bids</a>
+        <a href="my_orders.html" class="nav-item">📦 Orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="mb-6">
+        <h1 class="text-lg font-semibold text-gray-900">Incoming bids</h1>
+        <p id="bids-summary" class="text-xs text-gray-400 mt-1"></p>
+      </div>
+
+      <!-- BIDS CONTAINER -->
+      <div id="bids-container" class="flex flex-col gap-5"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">🔨</div>
+        <p class="text-sm font-medium text-gray-600">No bids yet</p>
+        <p class="text-xs text-gray-400 mt-1">Bids will appear here once buyers start bidding on your crops</p>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  let cropBids = []
+
+  async function loadBids() {
+    document.getElementById("nav-avatar").textContent   = (getName() || "F")[0].toUpperCase()
+    document.getElementById("nav-name").textContent     = getName() || "Farmer"
+    document.getElementById("nav-location").textContent = "📍 " + (getLocation() || "")
+
+    try {
+        const bids = await getFarmerBids()
+
+        // Only show bids for ACTIVE crops — filter out SOLD/EXPIRED
+        const activeBids = bids.filter(bid => bid.status === "ACTIVE")
+
+        // Group bids by cropId
+        const grouped = {}
+        activeBids.forEach(bid => {
+            if (!grouped[bid.cropId]) {
+                grouped[bid.cropId] = {
+                    cropId: bid.cropId,
+                    cropName: bid.cropName,
+                    bids: []
+                }
+            }
+            grouped[bid.cropId].bids.push(bid)
+        })
+
+        cropBids = Object.values(grouped)
+
+        const totalBids = activeBids.length
+        document.getElementById("bids-summary").textContent =
+            `${cropBids.length} active listings · ${totalBids} total bids`
+
+        renderBids()
+    } catch(err) {
+        console.log("Error loading bids:", err)
+    }
+}
+
+  function renderBids() {
+    const container = document.getElementById("bids-container")
+    const empty     = document.getElementById("empty-state")
+
+    if (cropBids.length === 0) {
+      container.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    container.innerHTML = cropBids.map(crop => `
+      <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🌾</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-900">${crop.cropName}</p>
+              <p class="text-xs text-gray-400 mt-0.5">${crop.bids.length} bids received</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold text-green-600">
+              ₹${Math.max(...crop.bids.map(b => b.amount)).toLocaleString()}/qtl
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Highest bid</p>
+          </div>
+        </div>
+
+        ${crop.bids.sort((a,b) => b.amount - a.amount).map(bid => `
+          <div class="flex items-center justify-between px-5 py-3 border-b border-gray-50
+            ${bid.isHighest ? 'bg-green-50 border-l-4 border-l-green-500' : ''}">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold
+                ${bid.isHighest ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
+                ${(bid.buyerName || "B")[0].toUpperCase()}
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-900">
+                  ${bid.buyerName || "Buyer"}
+                  ${bid.isHighest ? '<span class="ml-1 text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full">Highest</span>' : ''}
+                </p>
+                <p class="text-xs text-gray-400 mt-0.5">📍 ${bid.buyerLocation || "Unknown"}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold ${bid.isHighest ? 'text-green-600' : 'text-gray-900'}">
+                ₹${bid.amount.toLocaleString()}/qtl
+              </p>
+            </div>
+          </div>
+        `).join("")}
+
+        <div class="flex gap-3 px-5 py-3 bg-gray-50">
+          <button onclick="acceptHighestBid('${crop.cropId}')"
+            class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-medium transition">
+            ✅ Accept highest bid
+          </button>
+          <button class="flex-1 bg-white border border-gray-200 text-gray-500 py-2.5 rounded-lg text-xs transition">
+            ⏳ Wait for more bids
+          </button>
+        </div>
+      </div>
+    `).join("")
+  }
+
+   async function acceptHighestBid(cropId) {
+    if (confirm("Accept the highest bid and create an order?")) {
+        try {
+            const order = await acceptBid(cropId)
+            alert("✅ Bid accepted! Order #" + order.orderNumber + " created!\n\nRedirecting to orders page...")
+            // Remove this crop from bids list immediately
+            cropBids = cropBids.filter(c => c.cropId !== cropId)
+            renderBids()
+            // Redirect after short delay
+            setTimeout(() => {
+                window.location.href = "my_orders.html"
+            }, 1500)
+        } catch(err) {
+            console.log("Error:", err)
+            alert("Failed to accept bid. Try again!")
+        }
+    }
+}
+  loadBids()
+</script>
+
+</body>
+</html>

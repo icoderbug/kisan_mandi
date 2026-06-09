@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifications — Kisan Mandi Admin</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #94a3b8; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #334155; color: #fff; }
+    .nav-item.active { background: #334155; color: #fff; font-weight: 500; }
+    .filter-active { background: #1e293b !important; color: #fff !important; border-color: #1e293b !important; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+      <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded ml-1">ADMIN</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-semibold text-xs">SA</div>
+      <div>
+        <p class="text-xs font-medium text-gray-900">Super Admin</p>
+        <p class="text-xs text-gray-400">admin@kisanmandi.in</p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- DARK SIDEBAR -->
+    <aside class="w-52 min-h-screen fixed top-12 left-0 flex flex-col py-4 px-3" style="background:#1e293b">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="farmers.html" class="nav-item">👨‍🌾 Farmers</a>
+        <a href="#" class="nav-item">🛒 Buyers</a>
+        <a href="#" class="nav-item">🌾 Listings</a>
+        <a href="#" class="nav-item">💰 Transactions</a>
+        <a href="disputes.html" class="nav-item">⚠️ Disputes</a>
+        <a href="verifications.html" class="nav-item active">✅ Verifications</a>
+      </nav>
+      <div class="border-t pt-3 flex flex-col gap-1" style="border-color:#334155">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="mb-5">
+        <h1 class="text-lg font-semibold text-gray-900">Verifications</h1>
+        <p class="text-xs text-gray-400 mt-1">Review and approve new farmer & buyer registrations</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-3 gap-4 mb-5">
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-pending" class="text-2xl font-semibold text-amber-500"></div>
+          <div class="text-xs text-gray-400 mt-1">Pending</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-approved" class="text-2xl font-semibold text-green-500"></div>
+          <div class="text-xs text-gray-400 mt-1">Approved today</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-rejected" class="text-2xl font-semibold text-red-400"></div>
+          <div class="text-xs text-gray-400 mt-1">Rejected today</div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="flex gap-2 mb-5">
+        <button onclick="filterVerifications('all')"    id="filter-all"    class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition filter-active">All</button>
+        <button onclick="filterVerifications('farmer')" id="filter-farmer" class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Farmers</button>
+        <button onclick="filterVerifications('buyer')"  id="filter-buyer"  class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Buyers</button>
+      </div>
+
+      <!-- VERIFICATIONS CONTAINER -->
+      <div id="verifications-container" class="flex flex-col gap-4"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">✅</div>
+        <p class="text-sm font-medium text-gray-600">All caught up!</p>
+        <p class="text-xs text-gray-400 mt-1">No pending verifications at the moment</p>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  let verifications = []
+  let approvedCount = 0
+  let rejectedCount = 0
+
+  async function loadVerifications() {
+    try {
+      verifications = await getPendingUsers()
+      updateStats()
+      updateFilterCounts()
+      renderVerifications("all")
+    } catch(err) {
+      console.log("Error:", err)
+    }
+  }
+
+  function updateStats() {
+    document.getElementById("stat-pending").textContent  = verifications.length
+    document.getElementById("stat-approved").textContent = approvedCount
+    document.getElementById("stat-rejected").textContent = rejectedCount
+  }
+
+  function updateFilterCounts() {
+    const farmers = verifications.filter(v => v.role === "FARMER").length
+    const buyers  = verifications.filter(v => v.role === "BUYER").length
+    document.getElementById("filter-all").textContent    = `All (${verifications.length})`
+    document.getElementById("filter-farmer").textContent = `Farmers (${farmers})`
+    document.getElementById("filter-buyer").textContent  = `Buyers (${buyers})`
+  }
+
+  function filterVerifications(filter) {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+    document.getElementById("filter-" + filter).classList.add("filter-active")
+    renderVerifications(filter)
+  }
+
+  function renderVerifications(filter) {
+    const filtered = filter === "all"
+      ? verifications
+      : verifications.filter(v => v.role === filter.toUpperCase())
+
+    const container = document.getElementById("verifications-container")
+    const empty     = document.getElementById("empty-state")
+
+    if (filtered.length === 0) {
+      container.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    container.innerHTML = filtered.map(v => {
+      const isFarmer = v.role === "FARMER"
+      return `
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
+                ${isFarmer ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}">
+                ${(v.firstName||"U")[0].toUpperCase()}
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-semibold text-gray-900">${v.firstName} ${v.lastName||""}</p>
+                  <span class="text-xs px-2 py-0.5 rounded-full
+                    ${isFarmer ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+                    ${v.role}
+                  </span>
+                </div>
+                <p class="text-xs text-gray-400 mt-0.5">${v.phone} · ${v.email||""}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 bg-gray-50 rounded-xl p-4 mb-4">
+            <div class="text-center">
+              <p class="text-xs font-medium text-gray-900">${v.state||"N/A"}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Location</p>
+            </div>
+            <div class="text-center">
+              <p class="text-xs font-medium text-gray-900">${v.role}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Role</p>
+            </div>
+            <div class="text-center">
+              <p class="text-xs font-medium text-gray-900">${v.status}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Status</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <button onclick="approveUser('${v.id}')"
+              class="flex-1 ${isFarmer ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600'} text-white py-2.5 rounded-lg text-xs font-medium transition">
+              ✅ Approve ${isFarmer ? 'farmer' : 'buyer'}
+            </button>
+            <button onclick="rejectUser('${v.id}')"
+              class="flex-1 bg-white border border-red-200 text-red-500 hover:bg-red-50 py-2.5 rounded-lg text-xs transition">
+              ❌ Reject
+            </button>
+          </div>
+        </div>
+      `
+    }).join("")
+  }
+
+  async function approveUser(id) {
+    if (confirm("Approve this user?")) {
+      try {
+        await verifyUser(id)
+        verifications = verifications.filter(v => v.id !== id)
+        approvedCount++
+        updateStats()
+        updateFilterCounts()
+        renderVerifications("all")
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+        document.getElementById("filter-all").classList.add("filter-active")
+      } catch(err) {
+        toast.error("Failed to approve!")
+      }
+    }
+  }
+
+  async function rejectUser(id) {
+    if (confirm("Reject this registration?")) {
+      try {
+        await blockUser(id)
+        verifications = verifications.filter(v => v.id !== id)
+        rejectedCount++
+        updateStats()
+        updateFilterCounts()
+        renderVerifications("all")
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+        document.getElementById("filter-all").classList.add("filter-active")
+      } catch(err) {
+        toast.error("Failed to reject!")
+      }
+    }
+  }
+
+  loadVerifications()
+</script>
+</body>
+</html>

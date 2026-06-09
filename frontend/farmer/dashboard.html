@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer Dashboard — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #f0fdf4; color: #16a34a; }
+    .nav-item.active { background: #f0fdf4; color: #16a34a; font-weight: 500; }
+    .badge-active   { background: #f0fdf4; color: #16a34a; border: 0.5px solid #bbf7d0; }
+    .badge-sold     { background: #eff6ff; color: #2563eb; border: 0.5px solid #bfdbfe; }
+    .badge-expired  { background: #fef2f2; color: #ef4444; border: 0.5px solid #fecaca; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="nav-farmer-avatar" class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-farmer-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-farmer-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+        <a href="add_crop.html" class="nav-item">➕ Add crop</a>
+        <a href="my_listings.html" class="nav-item">🌾 My listings</a>
+        <a href="my_bids.html" class="nav-item">🔨 Bids</a>
+        <a href="my_orders.html" class="nav-item">📦 Orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item  hover:bg-red-50 hover:text-red-500" style="color:#ef4444">⚙️ Logout</a>
+        <a href="../login.html" onclick="logout()" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="ml-52 flex-1 p-7">
+
+      <!-- Greeting -->
+      <div class="flex items-center justify-between mb-7">
+        <div>
+          <h1 id="greeting-text" class="text-lg font-semibold text-gray-900"></h1>
+          <p class="text-xs text-gray-400 mt-1">Here's a quick look at your farm activity</p>
+        </div>
+        <a href="add_crop.html" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+          ➕ List new crop
+        </a>
+      </div>
+
+      <!-- STATS CARDS -->
+      <div class="grid grid-cols-3 gap-4 mb-7">
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="text-2xl mb-2">🌾</div>
+          <div id="stat-listings" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Active listings</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="text-2xl mb-2">🔨</div>
+          <div id="stat-bids" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Incoming bids</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="text-2xl mb-2">💰</div>
+          <div id="stat-earnings" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Total earned</div>
+        </div>
+      </div>
+
+      <!-- MY CROPS LIST -->
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm font-medium text-gray-700">My crops</p>
+        <a href="my_listings.html" class="text-xs text-green-600 hover:underline">View all →</a>
+      </div>
+      <div id="crop-list" class="bg-white border border-gray-100 rounded-xl overflow-hidden mb-7">
+        <!-- filled by JS -->
+      </div>
+
+      <!-- MANDI PRICES -->
+      <div class="mb-3">
+        <p class="text-sm font-medium text-gray-700">Today's mandi rates near you</p>
+      </div>
+      <div class="bg-green-50 border border-green-100 rounded-xl p-5">
+        <p id="mandi-location" class="text-xs font-medium text-green-700 mb-3"></p>
+        <div id="mandi-list" class="flex flex-col gap-2">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/toast.js"></script>
+<script>
+  // ============================================
+  // DUMMY DATA — Replace with fetch() in Week 8
+  // ============================================
+  const farmerData = {
+    name: "Ramesh Kumar",
+    initials: "RK",
+    location: "Prayagraj, UP",
+    stats: {
+      activeListings: 8,
+      incomingBids: 14,
+      totalEarnings: "₹1.8L"
+    }
+  }
+
+  const crops = [
+    { name: "Wheat",  emoji: "🌾", qty: "500 kg",  basePrice: 2000, highestBid: 2150, bids: 4, status: "active",  location: "Prayagraj, UP" },
+    { name: "Tomato", emoji: "🍅", qty: "200 kg",  basePrice: 700,  highestBid: 820,  bids: 2, status: "active",  location: "Prayagraj, UP" },
+    { name: "Maize",  emoji: "🌽", qty: "1 ton",   basePrice: 1400, highestBid: 1480, bids: 7, status: "sold",    location: "Prayagraj, UP" },
+    { name: "Onion",  emoji: "🧅", qty: "300 kg",  basePrice: 600,  highestBid: 0,    bids: 0, status: "expired", location: "Prayagraj, UP" },
+  ]
+
+  const mandiPrices = {
+    location: "Prayagraj Mandi, UP",
+    rates: [
+      { crop: "Wheat",  price: "₹2,050/qtl", change: "+₹30",  up: true  },
+      { crop: "Tomato", price: "₹780/qtl",   change: "-₹20",  up: false },
+      { crop: "Maize",  price: "₹1,400/qtl", change: "+₹15",  up: true  },
+      { crop: "Onion",  price: "₹580/qtl",   change: "-₹10",  up: false },
+    ]
+  }
+  // ============================================
+  // DISPLAY FUNCTIONS — Do not edit below this!
+  // ============================================
+
+  function getGreeting() {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 17) return "Good afternoon"
+    return "Good evening"
+  }
+
+  function getBadgeClass(status) {
+    if (status === "active")  return "badge-active"
+    if (status === "sold")    return "badge-sold"
+    if (status === "expired") return "badge-expired"
+    return ""
+  }
+
+  function renderPage() {
+    // Navbar
+    document.getElementById("nav-farmer-avatar").textContent   = farmerData.initials
+    document.getElementById("nav-farmer-name").textContent     = farmerData.name
+    document.getElementById("nav-farmer-location").textContent = "📍 " + farmerData.location
+
+    // Greeting
+    document.getElementById("greeting-text").textContent =
+      getGreeting() + ", " + farmerData.name.split(" ")[0] + " 👋"
+
+    // Stats
+    document.getElementById("stat-listings").textContent = farmerData.stats.activeListings
+    document.getElementById("stat-bids").textContent     = farmerData.stats.incomingBids
+    document.getElementById("stat-earnings").textContent = farmerData.stats.totalEarnings
+
+    // Crop list
+    const cropList = document.getElementById("crop-list")
+    cropList.innerHTML = crops.map((crop, i) => `
+      <div class="flex items-center justify-between px-5 py-4 ${i < crops.length - 1 ? 'border-b border-gray-50' : ''}">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">${crop.emoji}</span>
+          <div>
+            <p class="text-sm font-medium text-gray-900">${crop.name} — ${crop.qty}</p>
+            <p class="text-xs text-gray-400">📍 ${crop.location} · Base ₹${crop.basePrice}/qtl</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-medium text-green-600">${crop.bids > 0 ? '₹' + crop.highestBid + '/qtl' : '—'}</p>
+          <p class="text-xs text-gray-400">${crop.bids > 0 ? crop.bids + ' bids' : 'No bids yet'}</p>
+          <span class="text-xs px-2 py-0.5 rounded-full ${getBadgeClass(crop.status)} mt-1 inline-block">
+            ${crop.status.charAt(0).toUpperCase() + crop.status.slice(1)}
+          </span>
+        </div>
+      </div>
+    `).join("")
+
+    // Mandi prices
+    document.getElementById("mandi-location").textContent = "📍 " + mandiPrices.location
+    document.getElementById("mandi-list").innerHTML = mandiPrices.rates.map(rate => `
+      <div class="flex items-center justify-between py-2 border-b border-green-100 last:border-0">
+        <span class="text-sm text-gray-700">${rate.crop}</span>
+        <div class="text-right">
+          <span class="text-sm font-medium text-gray-900">${rate.price}</span>
+          <span class="text-xs ml-2 ${rate.up ? 'text-green-600' : 'text-red-500'}">${rate.change} today</span>
+        </div>
+      </div>
+    `).join("")
+  }
+
+  renderPage()
+</script>
+<script src="../js/api.js"></script>
+<script src="../js/farmer_dashboard.js"></script>
+</body>
+</html>

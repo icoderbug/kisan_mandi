@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Bids — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #fef9f0; color: #d97706; }
+    .nav-item.active { background: #fef9f0; color: #d97706; font-weight: 500; }
+    .filter-active { background: #fef9f0 !important; color: #d97706 !important; border-color: #fde68a !important; font-weight: 500; }
+    .badge-winning { background: #f0fdf4; color: #16a34a; border: 0.5px solid #bbf7d0; }
+    .badge-outbid  { background: #fef2f2; color: #ef4444; border: 0.5px solid #fecaca; }
+    .badge-won     { background: #eff6ff; color: #2563eb; border: 0.5px solid #bfdbfe; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="nav-avatar" class="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center text-amber-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="browse_crops.html" class="nav-item">🌾 Browse crops</a>
+        <a href="my_bids.html" class="nav-item active">🔨 My bids</a>
+        <a href="my_orders.html" class="nav-item">📦 My orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="mb-5">
+        <h1 class="text-lg font-semibold text-gray-900">My bids</h1>
+        <p class="text-xs text-gray-400 mt-1">Track all your active and past bids</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-4 gap-4 mb-5">
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-total" class="text-xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Total bids</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-winning" class="text-xl font-semibold text-green-500"></div>
+          <div class="text-xs text-gray-400 mt-1">Winning</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-outbid" class="text-xl font-semibold text-red-400"></div>
+          <div class="text-xs text-gray-400 mt-1">Outbid</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-won" class="text-xl font-semibold text-blue-500"></div>
+          <div class="text-xs text-gray-400 mt-1">Won</div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="flex gap-2 mb-5 flex-wrap">
+        <button onclick="filterBids('all')"     id="filter-all"     class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition filter-active">All</button>
+        <button onclick="filterBids('winning')" id="filter-winning" class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Winning</button>
+        <button onclick="filterBids('outbid')"  id="filter-outbid"  class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Outbid</button>
+        <button onclick="filterBids('won')"     id="filter-won"     class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Won</button>
+      </div>
+
+      <!-- BIDS CONTAINER -->
+      <div id="bids-container" class="flex flex-col gap-4"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">🔨</div>
+        <p class="text-sm font-medium text-gray-600">No bids found</p>
+        <p class="text-xs text-gray-400 mt-1 mb-4">Start bidding on crops to see them here</p>
+        <a href="browse_crops.html" class="bg-amber-500 text-white px-5 py-2 rounded-lg text-sm">Browse crops</a>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  let myBids = []
+
+  async function loadBids() {
+    document.getElementById("nav-avatar").textContent   = (getName() || "B")[0].toUpperCase()
+    document.getElementById("nav-name").textContent     = getName() || "Buyer"
+    document.getElementById("nav-location").textContent = "📍 " + (getLocation() || "")
+
+    try {
+      myBids = await getMyBids()
+      updateStats()
+      updateFilterCounts()
+      renderBids()
+    } catch(err) {
+      console.log("Error:", err)
+    }
+  }
+
+  function updateStats() {
+    document.getElementById("stat-total").textContent   = myBids.length
+    document.getElementById("stat-winning").textContent = myBids.filter(b => b.isHighest).length
+    document.getElementById("stat-outbid").textContent  = myBids.filter(b => !b.isHighest && b.status === "ACTIVE").length
+    document.getElementById("stat-won").textContent     = myBids.filter(b => b.status === "WON").length
+  }
+
+  function updateFilterCounts() {
+    document.getElementById("filter-all").textContent     = `All (${myBids.length})`
+    document.getElementById("filter-winning").textContent = `Winning (${myBids.filter(b => b.isHighest).length})`
+    document.getElementById("filter-outbid").textContent  = `Outbid (${myBids.filter(b => !b.isHighest && b.status === "ACTIVE").length})`
+    document.getElementById("filter-won").textContent     = `Won (${myBids.filter(b => b.status === "WON").length})`
+  }
+
+  function getBidStatus(bid) {
+    if (bid.status === "WON")    return "won"
+    if (bid.isHighest)           return "winning"
+    if (bid.status === "ACTIVE") return "outbid"
+    return "outbid"
+  }
+
+  function filterBids(filter) {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+    document.getElementById("filter-" + filter).classList.add("filter-active")
+
+    const filtered = filter === "all" ? myBids : myBids.filter(b => getBidStatus(b) === filter)
+    renderBidsList(filtered)
+  }
+
+  function getBadgeClass(status) {
+    if (status === "winning") return "badge-winning"
+    if (status === "outbid")  return "badge-outbid"
+    if (status === "won")     return "badge-won"
+    return ""
+  }
+
+  function getCropEmoji(name) {
+    const n = (name||"").toLowerCase()
+    if (n.includes("wheat"))  return "🌾"
+    if (n.includes("tomato")) return "🍅"
+    if (n.includes("maize"))  return "🌽"
+    if (n.includes("onion"))  return "🧅"
+    return "🌱"
+  }
+
+  function renderBids() {
+    renderBidsList(myBids)
+  }
+
+  function renderBidsList(bids) {
+    const container = document.getElementById("bids-container")
+    const empty     = document.getElementById("empty-state")
+
+    if (bids.length === 0) {
+      container.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    container.innerHTML = bids.map(bid => {
+      const status = getBidStatus(bid)
+      return `
+        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+          ${status === 'outbid' ? `
+            <div class="bg-red-50 border-l-4 border-red-400 px-4 py-2 text-xs text-red-600">
+              ⚠️ You have been outbid! Raise your bid to stay in the race.
+            </div>
+          ` : ''}
+          <div class="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">${getCropEmoji(bid.cropName)}</span>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">${bid.cropName}</p>
+                <p class="text-xs text-gray-400 mt-0.5">📍 ${bid.buyerLocation || ""}</p>
+              </div>
+            </div>
+            <span class="text-xs px-3 py-1 rounded-full ${getBadgeClass(status)}">
+              ${status === 'winning' ? '● Winning' : status === 'outbid' ? '● Outbid' : '🎉 Won'}
+            </span>
+          </div>
+          <div class="grid grid-cols-3 border-b border-gray-50">
+            <div class="text-center py-3 border-r border-gray-50">
+              <p class="text-sm font-semibold text-gray-900">₹${bid.amount.toLocaleString()}/qtl</p>
+              <p class="text-xs text-gray-400 mt-0.5">My bid</p>
+            </div>
+            <div class="text-center py-3 border-r border-gray-50">
+              <p class="text-sm font-semibold ${status === 'outbid' ? 'text-red-500' : 'text-green-500'}">
+                ${bid.isHighest ? '✓ Highest' : 'Outbid'}
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">Status</p>
+            </div>
+            <div class="text-center py-3">
+              <p class="text-sm font-semibold text-gray-900">${bid.status}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Bid status</p>
+            </div>
+          </div>
+          <div class="flex gap-3 px-5 py-3">
+            ${status === 'won' ? `
+              <button onclick="window.location.href='my_orders.html'"
+                class="flex-1 bg-blue-50 text-blue-600 border border-blue-200 py-2 rounded-lg text-xs">
+                View order →
+              </button>
+            ` : `
+              <button onclick="window.location.href='browse_crops.html'"
+                class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg text-xs font-medium transition">
+                ${status === 'outbid' ? '⬆ Raise bid' : 'Browse more crops'}
+              </button>
+              <button onclick="withdrawMyBid('${bid.id}')"
+                class="border border-gray-200 text-gray-500 px-4 py-2 rounded-lg text-xs">
+                Withdraw
+              </button>
+            `}
+          </div>
+        </div>
+      `
+    }).join("")
+  }
+
+  async function withdrawMyBid(id) {
+    if (confirm("Withdraw this bid?")) {
+      try {
+        await withdrawBid(id)
+        await loadBids()
+      } catch(err) {
+        toast.error("Failed to withdraw bid!")
+      }
+    }
+  }
+
+  loadBids()
+</script>
+</body>
+</html>

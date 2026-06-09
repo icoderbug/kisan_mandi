@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Crop — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #f0fdf4; color: #16a34a; }
+    .nav-item.active { background: #f0fdf4; color: #16a34a; font-weight: 500; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #16a34a !important; }
+    .upload-box { border: 1.5px dashed #d1d5db; border-radius: 10px; padding: 28px; text-align: center; background: #f9fafb; cursor: pointer; transition: .2s; }
+    .upload-box:hover { border-color: #16a34a; background: #f0fdf4; }
+    .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 0.5px solid #e5e7eb; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="nav-avatar" class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="add_crop.html" class="nav-item active">➕ Add crop</a>
+        <a href="my_listings.html" class="nav-item">🌾 My listings</a>
+        <a href="my_bids.html" class="nav-item">🔨 Bids</a>
+        <a href="my_orders.html" class="nav-item">📦 Orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7 max-w-2xl">
+
+      <h1 class="text-lg font-semibold text-gray-900 mb-1">List a new crop 🌾</h1>
+      <p class="text-xs text-gray-400 mb-6">Fill in the details below to start receiving bids from buyers</p>
+
+      <!-- CROP DETAILS CARD -->
+      <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 pb-2 border-b border-gray-50">Crop details</p>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Crop name</label>
+            <select id="crop-name" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
+              <option value="">Select crop</option>
+              <option>Wheat</option>
+              <option>Rice</option>
+              <option>Maize</option>
+              <option>Tomato</option>
+              <option>Onion</option>
+              <option>Potato</option>
+              <option>Sugarcane</option>
+              <option>Cotton</option>
+              <option>Soybean</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Category</label>
+            <select id="crop-category" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
+              <option value="">Select category</option>
+              <option>Grain</option>
+              <option>Vegetable</option>
+              <option>Fruit</option>
+              <option>Spice</option>
+              <option>Cash crop</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Quantity</label>
+            <input id="crop-qty" type="number" placeholder="500"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Unit</label>
+            <select id="crop-unit" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
+              <option>kg</option>
+              <option>Quintal</option>
+              <option>Ton</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Harvest date</label>
+            <input id="crop-harvest" type="date"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1.5">Description <span class="text-gray-400 font-normal">(optional)</span></label>
+          <textarea id="crop-desc" rows="3" placeholder="e.g. Grade A wheat, freshly harvested, no pesticides used..."
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none"></textarea>
+        </div>
+      </div>
+
+      <!-- PRICING CARD -->
+      <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 pb-2 border-b border-gray-50">Pricing</p>
+
+        <div class="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Base price (₹ per qtl)</label>
+            <input id="crop-price" type="number" placeholder="2000"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Bid closing time</label>
+            <select id="crop-bidtime" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
+              <option value="24">24 hours</option>
+              <option value="48">48 hours</option>
+              <option value="72">3 days</option>
+              <option value="168">7 days</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="mandi-tip" class="bg-green-50 border border-green-100 rounded-lg px-3 py-2 text-xs text-green-700">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- LOCATION CARD -->
+      <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 pb-2 border-b border-gray-50">Pickup location</p>
+
+        <div class="bg-green-50 border border-green-100 rounded-lg px-4 py-3 flex items-center gap-3 mb-3">
+          <span class="text-lg">📍</span>
+          <div>
+            <p id="location-main" class="text-xs font-medium text-green-800"></p>
+            <p class="text-xs text-green-600 mt-0.5">Auto-filled from your profile · Buyers will see this</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1.5">Village / Area <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input id="crop-village" type="text" placeholder="e.g. Naini, Jhunsi, Phaphamau..."
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+        </div>
+      </div>
+
+      <!-- PHOTO UPLOAD CARD -->
+      <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 pb-2 border-b border-gray-50">Crop photos</p>
+
+        <div class="upload-box" onclick="document.getElementById('photo-input').click()">
+          <div class="text-3xl mb-2">📷</div>
+          <p class="text-sm font-medium text-gray-600">Click to upload crop photos</p>
+          <p class="text-xs text-gray-400 mt-1">JPG, PNG up to 5MB · Max 4 photos</p>
+          <input id="photo-input" type="file" accept="image/*" multiple class="hidden" onchange="previewPhotos(event)" />
+        </div>
+        <div id="photo-preview" class="preview-grid hidden"></div>
+      </div>
+
+      <!-- TIPS BOX -->
+      <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-5">
+        <p class="text-xs font-semibold text-amber-800 mb-2">💡 Tips to get more bids</p>
+        <ul class="space-y-1">
+          <li class="text-xs text-amber-700 flex items-start gap-1.5"><span>✓</span> Add clear photos — listings with photos get 3x more bids</li>
+          <li class="text-xs text-amber-700 flex items-start gap-1.5"><span>✓</span> Set base price slightly below mandi rate to attract buyers</li>
+          <li class="text-xs text-amber-700 flex items-start gap-1.5"><span>✓</span> Mention quality grade and pesticide usage in description</li>
+        </ul>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex flex-col gap-3 mb-10">
+        <button onclick="submitListing()"
+          class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-sm font-medium transition">
+          🌾 Submit listing
+        </button>
+        <button onclick="window.location.href='dashboard.html'"
+          class="w-full bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 py-2.5 rounded-xl text-sm transition">
+          Cancel
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/toast.js"></script>
+<script>
+  // ============================================
+  // DUMMY DATA — Replace with fetch() in Week 8
+  // ============================================
+  const farmerData = {
+    name: "Ramesh Kumar",
+    initials: "RK",
+    location: "Prayagraj, Uttar Pradesh",
+  }
+
+  const mandiRates = {
+    "Wheat":     { price: 2050, change: "+₹30"  },
+    "Rice":      { price: 3200, change: "+₹50"  },
+    "Maize":     { price: 1400, change: "+₹15"  },
+    "Tomato":    { price: 780,  change: "-₹20"  },
+    "Onion":     { price: 580,  change: "-₹10"  },
+    "Potato":    { price: 900,  change: "+₹5"   },
+    "Sugarcane": { price: 350,  change: "+₹2"   },
+    "Cotton":    { price: 6500, change: "+₹100" },
+    "Soybean":   { price: 4200, change: "-₹30"  },
+  }
+  // ============================================
+  // DISPLAY FUNCTIONS — Do not edit below this!
+  // ============================================
+
+  function renderPage() {
+    document.getElementById("nav-avatar").textContent   = farmerData.initials
+    document.getElementById("nav-name").textContent     = farmerData.name
+    document.getElementById("nav-location").textContent = "📍 " + farmerData.location
+    document.getElementById("location-main").textContent = farmerData.location
+    updateMandiTip()
+  }
+
+  function updateMandiTip() {
+    const cropName = document.getElementById("crop-name").value
+    const tip = document.getElementById("mandi-tip")
+    if (cropName && mandiRates[cropName]) {
+      const rate = mandiRates[cropName]
+      tip.textContent = `💡 Today's mandi rate for ${cropName} is ₹${rate.price}/qtl (${rate.change} today). Set your base price wisely!`
+    } else {
+      tip.textContent = "💡 Select a crop to see today's mandi rate and set the right base price."
+    }
+  }
+
+  function previewPhotos(event) {
+    const files = Array.from(event.target.files).slice(0, 4)
+    const preview = document.getElementById("photo-preview")
+    preview.innerHTML = ""
+    preview.classList.remove("hidden")
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = e => {
+        const img = document.createElement("img")
+        img.src = e.target.result
+        img.className = "preview-img"
+        preview.appendChild(img)
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+  
+    // ============================================
+    // TODO Week 8: Replace this with fetch() POST
+    // fetch('http://localhost:8080/api/crops', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(newCrop)
+    // })
+    // ============================================
+    async function submitListing() {
+    const cropName = document.getElementById("crop-name").value
+    const qty      = document.getElementById("crop-qty").value
+    const price    = document.getElementById("crop-price").value
+    const unit     = document.getElementById("crop-unit").value
+    const desc     = document.getElementById("crop-desc").value
+    const village  = document.getElementById("crop-village").value
+    const bidtime  = document.getElementById("crop-bidtime").value
+
+    if (!cropName || !qty || !price) {
+        toast.warning("Please fill crop name, quantity and base price!")
+        return
+    }
+
+    const hours = parseInt(bidtime)
+    const bidEndTime = new Date()
+    bidEndTime.setHours(bidEndTime.getHours() + hours)
+
+    try {
+        const result = await addCrop({
+            name: cropName,
+            category: document.getElementById("crop-category").value,
+            quantity: parseFloat(qty),
+            unit: unit,
+            description: desc,
+            basePrice: parseFloat(price),
+            village: village,
+            district: getLocation(),
+            state: getLocation(),
+            harvestDate: new Date().toISOString(),
+            bidEndTime: bidEndTime.toISOString()
+        })
+        toast.success("✅ Crop listed successfully!")
+        window.location.href = "my_listings.html"
+    } catch(err) {
+        toast.error("Failed to list crop. Is Spring Boot running?")
+    }
+}
+
+  document.getElementById("crop-name").addEventListener("change", updateMandiTip)
+
+  renderPage()
+</script>
+<script src="../js/api.js"></script>
+</body>
+</html>

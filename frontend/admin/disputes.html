@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disputes — Kisan Mandi Admin</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #94a3b8; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #334155; color: #fff; }
+    .nav-item.active { background: #334155; color: #fff; font-weight: 500; }
+    .filter-active { background: #1e293b !important; color: #fff !important; border-color: #1e293b !important; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+      <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded ml-1">ADMIN</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-semibold text-xs">SA</div>
+      <div>
+        <p class="text-xs font-medium text-gray-900">Super Admin</p>
+        <p class="text-xs text-gray-400">admin@kisanmandi.in</p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- DARK SIDEBAR -->
+    <aside class="w-52 min-h-screen fixed top-12 left-0 flex flex-col py-4 px-3" style="background:#1e293b">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="farmers.html" class="nav-item">👨‍🌾 Farmers</a>
+        <a href="#" class="nav-item">🛒 Buyers</a>
+        <a href="#" class="nav-item">🌾 Listings</a>
+        <a href="#" class="nav-item">💰 Transactions</a>
+        <a href="disputes.html" class="nav-item active">⚠️ Disputes</a>
+        <a href="verifications.html" class="nav-item">✅ Verifications</a>
+      </nav>
+      <div class="border-t pt-3 flex flex-col gap-1" style="border-color:#334155">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="mb-5">
+        <h1 class="text-lg font-semibold text-gray-900">Disputes</h1>
+        <p class="text-xs text-gray-400 mt-1">Manage and resolve platform disputes</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-3 gap-4 mb-5">
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-open" class="text-2xl font-semibold text-red-400"></div>
+          <div class="text-xs text-gray-400 mt-1">Open disputes</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-resolved" class="text-2xl font-semibold text-green-500"></div>
+          <div class="text-xs text-gray-400 mt-1">Resolved this month</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div id="stat-amount" class="text-2xl font-semibold text-amber-500"></div>
+          <div class="text-xs text-gray-400 mt-1">Amount under dispute</div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="flex gap-2 mb-5">
+        <button onclick="filterDisputes('all')"      id="filter-all"      class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition filter-active">All</button>
+        <button onclick="filterDisputes('open')"     id="filter-open"     class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Open</button>
+        <button onclick="filterDisputes('resolved')" id="filter-resolved" class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Resolved</button>
+      </div>
+
+      <!-- DISPUTES CONTAINER -->
+      <div id="disputes-container" class="flex flex-col gap-4"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">✅</div>
+        <p class="text-sm font-medium text-gray-600">No disputes found!</p>
+        <p class="text-xs text-gray-400 mt-1">The platform is running smoothly</p>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  // ============================================
+  // DUMMY DATA — Replace with fetch() in Week 8
+  // ============================================
+  const monthlyResolved = 18
+
+  let disputes = [
+    {
+      id: "KM-2024-003",
+      issue: "Payment not received by farmer",
+      status: "open",
+      farmer: { name: "Ramesh Kumar",   location: "Prayagraj, UP" },
+      buyer:  { name: "Anil Sharma",    location: "Mumbai, MH"    },
+      crop: "Maize — 1 ton",
+      amount: 14800,
+      orderDate: "17 Mar 2025",
+      raisedAgo: "2 days ago",
+    },
+    {
+      id: "KM-2024-007",
+      issue: "Wrong crop quantity delivered",
+      status: "open",
+      farmer: { name: "Gurpreet Singh", location: "Ludhiana, PB"  },
+      buyer:  { name: "Suresh Traders", location: "Lucknow, UP"   },
+      crop: "Rice — 800 kg",
+      amount: 17600,
+      orderDate: "15 Mar 2025",
+      raisedAgo: "1 day ago",
+    },
+    {
+      id: "KM-2024-001",
+      issue: "Wrong crop delivered",
+      status: "resolved",
+      farmer: { name: "Sunil More",     location: "Nashik, MH"    },
+      buyer:  { name: "Krishna Vegs",   location: "Pune, MH"      },
+      crop: "Tomato — 200 kg",
+      amount: 1640,
+      orderDate: "14 Mar 2025",
+      raisedAgo: "3 days ago",
+    },
+  ]
+  // ============================================
+  // DISPLAY FUNCTIONS — Do not edit below this!
+  // ============================================
+
+  let resolvedCount = monthlyResolved
+
+  function renderPage() {
+    updateStats()
+    updateFilterCounts()
+    renderDisputes("all")
+  }
+
+  function updateStats() {
+    const open        = disputes.filter(d => d.status === "open")
+    const totalAmount = open.reduce((s, d) => s + d.amount, 0)
+    document.getElementById("stat-open").textContent     = open.length
+    document.getElementById("stat-resolved").textContent = resolvedCount
+    document.getElementById("stat-amount").textContent   = "₹" + totalAmount.toLocaleString()
+  }
+
+  function updateFilterCounts() {
+    const open     = disputes.filter(d => d.status === "open").length
+    const resolved = disputes.filter(d => d.status === "resolved").length
+    document.getElementById("filter-all").textContent      = `All (${disputes.length})`
+    document.getElementById("filter-open").textContent     = `Open (${open})`
+    document.getElementById("filter-resolved").textContent = `Resolved (${resolved})`
+  }
+
+  function filterDisputes(filter) {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+    document.getElementById("filter-" + filter).classList.add("filter-active")
+    renderDisputes(filter)
+  }
+
+  function renderDisputes(filter) {
+    const filtered  = filter === "all" ? disputes : disputes.filter(d => d.status === filter)
+    const container = document.getElementById("disputes-container")
+    const empty     = document.getElementById("empty-state")
+
+    if (filtered.length === 0) {
+      container.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    container.innerHTML = filtered.map(d => `
+      <div class="bg-white border border-gray-100 rounded-xl overflow-hidden ${d.status === 'resolved' ? 'opacity-75' : ''}">
+
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-50
+          ${d.status === 'open' ? 'bg-red-50' : 'bg-gray-50'}">
+          <div>
+            <p class="text-xs font-medium ${d.status === 'open' ? 'text-red-500' : 'text-gray-400'}">
+              ${d.status === 'open' ? '⚠️' : ''} Order #${d.id}
+            </p>
+            <p class="text-sm font-semibold text-gray-900 mt-0.5">${d.issue}</p>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full
+            ${d.status === 'open'
+              ? 'bg-red-50 text-red-500 border border-red-100'
+              : 'bg-green-50 text-green-600 border border-green-100'}">
+            ${d.status === 'open' ? 'Open' : 'Resolved ✓'}
+          </span>
+        </div>
+
+        <div class="px-5 py-4 border-b border-gray-50">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs text-gray-400 mb-1">🌾 Farmer</p>
+              <p class="text-sm font-medium text-gray-900">${d.farmer.name}</p>
+              <p class="text-xs text-gray-400 mt-0.5">📍 ${d.farmer.location}</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs text-gray-400 mb-1">🛒 Buyer</p>
+              <p class="text-sm font-medium text-gray-900">${d.buyer.name}</p>
+              <p class="text-xs text-gray-400 mt-0.5">📍 ${d.buyer.location}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2">
+            <div class="text-center bg-gray-50 rounded-lg p-2">
+              <p class="text-xs font-medium text-gray-900">${d.crop}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Crop</p>
+            </div>
+            <div class="text-center bg-gray-50 rounded-lg p-2">
+              <p class="text-xs font-medium text-gray-900">₹${d.amount.toLocaleString()}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Amount</p>
+            </div>
+            <div class="text-center bg-gray-50 rounded-lg p-2">
+              <p class="text-xs font-medium text-gray-900">${d.orderDate}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Order date</p>
+            </div>
+            <div class="text-center bg-gray-50 rounded-lg p-2">
+              <p class="text-xs font-medium text-gray-900">${d.raisedAgo}</p>
+              <p class="text-xs text-gray-400 mt-0.5">${d.status === 'resolved' ? 'Resolved' : 'Raised'}</p>
+            </div>
+          </div>
+        </div>
+
+        ${d.status === 'open' ? `
+          <div class="flex gap-3 px-5 py-3">
+            <button onclick="contactParty('${d.id}', 'farmer')"
+              class="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border border-green-100 py-2 rounded-lg text-xs transition">
+              Contact farmer
+            </button>
+            <button onclick="contactParty('${d.id}', 'buyer')"
+              class="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100 py-2 rounded-lg text-xs transition">
+              Contact buyer
+            </button>
+            <button onclick="resolveDispute('${d.id}')"
+              class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-medium transition">
+              ✅ Mark resolved
+            </button>
+          </div>
+        ` : ''}
+
+      </div>
+    `).join("")
+  }
+
+  function contactParty(id, party) {
+    const d    = disputes.find(d => d.id === id)
+    const info = party === "farmer" ? d.farmer : d.buyer
+    toast.info(`📞 Contacting ${party}...\n\nName: ${info.name}\nLocation: ${info.location}\n\n(SMS/Email integration coming in Week 8!)`)
+  }
+
+  function resolveDispute(id) {
+    // TODO Week 8: fetch() PATCH to resolve dispute
+    const d = disputes.find(d => d.id === id)
+    if (confirm(`Mark dispute for Order #${d.id} as resolved?`)) {
+      d.status = "resolved"
+      resolvedCount++
+      updateStats()
+      updateFilterCounts()
+      renderDisputes("all")
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+      document.getElementById("filter-all").classList.add("filter-active")
+    }
+  }
+
+  renderPage()
+</script>
+</body>
+</html>

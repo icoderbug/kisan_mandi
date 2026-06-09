@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #94a3b8; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #334155; color: #fff; }
+    .nav-item.active { background: #334155; color: #fff; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+      <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded ml-1">ADMIN</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-semibold text-xs">SA</div>
+      <div>
+        <p class="text-xs font-medium text-gray-900">Super Admin</p>
+        <p class="text-xs text-gray-400">admin@kisanmandi.in</p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- DARK SIDEBAR -->
+    <aside class="w-52 min-h-screen fixed top-12 left-0 flex flex-col py-4 px-3" style="background:#1e293b">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+        <a href="farmers.html" class="nav-item">👨‍🌾 Farmers</a>
+        <a href="#" class="nav-item">🛒 Buyers</a>
+        <a href="#" class="nav-item">🌾 Listings</a>
+        <a href="#" class="nav-item">💰 Transactions</a>
+        <a href="#" class="nav-item">⚠️ Disputes</a>
+        <a href="#" class="nav-item">✅ Verifications</a>
+      </nav>
+      <div class="border-t pt-3 flex flex-col gap-1" style="border-color:#334155">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="mb-6">
+        <h1 class="text-lg font-semibold text-gray-900">Admin Dashboard</h1>
+        <p id="today-date" class="text-xs text-gray-400 mt-1"></p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-xl mb-2">👨‍🌾</div>
+          <div id="stat-farmers" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Total farmers</div>
+          <div id="stat-farmers-change" class="text-xs text-green-500 mt-1"></div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-xl mb-2">🛒</div>
+          <div id="stat-buyers" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Total buyers</div>
+          <div id="stat-buyers-change" class="text-xs text-green-500 mt-1"></div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-xl mb-2">🌾</div>
+          <div id="stat-listings" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Active listings</div>
+          <div id="stat-listings-change" class="text-xs text-green-500 mt-1"></div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-xl mb-2">💰</div>
+          <div id="stat-revenue" class="text-2xl font-semibold text-gray-900"></div>
+          <div class="text-xs text-gray-400 mt-1">Total revenue</div>
+          <div id="stat-revenue-change" class="text-xs text-green-500 mt-1"></div>
+        </div>
+      </div>
+
+      <!-- TWO COLUMN -->
+      <div class="grid grid-cols-2 gap-5 mb-5">
+
+        <!-- PENDING VERIFICATIONS -->
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-medium text-gray-700">Pending verifications</p>
+            <span id="pending-count" class="text-xs bg-red-50 text-red-500 border border-red-100 px-2 py-0.5 rounded-full"></span>
+          </div>
+          <div id="verifications-list"></div>
+          <div id="verifications-empty" class="hidden text-center py-6 text-xs text-gray-400">
+            ✅ All verifications done!
+          </div>
+        </div>
+
+        <!-- RECENT TRANSACTIONS -->
+        <div class="bg-white border border-gray-100 rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-medium text-gray-700">Recent transactions</p>
+            <span class="text-xs text-blue-500 cursor-pointer">View all</span>
+          </div>
+          <div id="transactions-list"></div>
+        </div>
+
+      </div>
+
+      <!-- DISPUTES -->
+      <div class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-sm font-medium text-gray-700">Disputes</p>
+          <span id="disputes-count" class="text-xs bg-red-50 text-red-500 border border-red-100 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <div id="disputes-list"></div>
+      </div>
+
+    </main>
+  </div>
+  <script src="../js/toast.js"></script>
+
+  <script src="../js/api.js"></script>
+<script>
+  let pendingVerifications = []
+  let disputes = []
+
+  async function loadDashboard() {
+    try {
+      const [stats, pending] = await Promise.all([
+        getAdminStats(),
+        getPendingUsers()
+      ])
+
+      document.getElementById("stat-farmers").textContent  = stats.totalFarmers
+      document.getElementById("stat-buyers").textContent   = stats.totalBuyers
+      document.getElementById("stat-listings").textContent = stats.activeListings
+      document.getElementById("stat-revenue").textContent  = "₹" + (stats.totalOrders * 5000).toLocaleString()
+
+      pendingVerifications = pending
+      document.getElementById("today-date").textContent =
+        "Platform overview — " + new Date().toLocaleDateString("en-IN", {
+          day: "numeric", month: "long", year: "numeric"
+        })
+
+      renderVerifications()
+      renderTransactions()
+    } catch(err) {
+      console.log("Error:", err)
+    }
+  }
+
+  function renderVerifications() {
+    const list  = document.getElementById("verifications-list")
+    const empty = document.getElementById("verifications-empty")
+    const count = document.getElementById("pending-count")
+
+    count.textContent = pendingVerifications.length + " pending"
+
+    if (pendingVerifications.length === 0) {
+      list.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    list.innerHTML = pendingVerifications.map(v => `
+      <div class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-green-700 font-semibold text-xs">
+            ${(v.firstName||"U")[0].toUpperCase()}
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-900">${v.firstName} ${v.lastName || ""}</p>
+            <p class="text-xs text-gray-400 mt-0.5">📍 ${v.state || ""} · ${v.role} · ${v.phone}</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="approveUser('${v.id}')"
+            class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg transition">
+            Approve
+          </button>
+          <button onclick="rejectUser('${v.id}')"
+            class="bg-white border border-red-200 text-red-400 hover:bg-red-50 text-xs px-3 py-1.5 rounded-lg transition">
+            Reject
+          </button>
+        </div>
+      </div>
+    `).join("")
+  }
+
+  function renderTransactions() {
+    document.getElementById("transactions-list").innerHTML = `
+      <div class="text-center py-6 text-xs text-gray-400">
+        Real transactions will appear here after orders are placed!
+      </div>
+    `
+  }
+
+  async function approveUser(id) {
+    if (confirm("Approve this user?")) {
+      try {
+        await verifyUser(id)
+        pendingVerifications = pendingVerifications.filter(v => v.id !== id)
+        renderVerifications()
+        toast.success("User approved successfully!")
+      } catch(err) {
+        toast.error("Failed to approve user!")
+      }
+    }
+  }
+
+  async function rejectUser(id) {
+    if (confirm("Reject this user?")) {
+      try {
+        await blockUser(id)
+        pendingVerifications = pendingVerifications.filter(v => v.id !== id)
+        renderVerifications()
+        toast.success("User rejected!")
+      } catch(err) {
+        toast.error("Failed to reject user!")
+      }
+    }
+  }
+
+  loadDashboard()
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Crops — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #fef9f0; color: #d97706; }
+    .nav-item.active { background: #fef9f0; color: #d97706; font-weight: 500; }
+    input:focus, select:focus { outline: none; border-color: #d97706 !important; }
+
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="nav-avatar" class="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center text-amber-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="browse_crops.html" class="nav-item active">🌾 Browse crops</a>
+        <a href="my_bids.html" class="nav-item">🔨 My bids</a>
+        <a href="my_orders.html" class="nav-item">📦 My orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+      <div class="mb-5">
+        <h1 class="text-lg font-semibold text-gray-900">Browse crops</h1>
+        <p class="text-xs text-gray-400 mt-1">Fresh crops listed by verified farmers across India</p>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="flex gap-3 mb-4">
+        <input id="search-input" type="text" placeholder="Search crops — wheat, tomato, onion..."
+          oninput="applyFilters()"
+          class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white" />
+        <button onclick="applyFilters()"
+          class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition">
+          Search
+        </button>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="flex gap-3 mb-4 flex-wrap items-center">
+        <select id="filter-crop" onchange="applyFilters()"
+          class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 bg-white">
+          <option value="">All crops</option>
+          <option>Wheat</option>
+          <option>Tomato</option>
+          <option>Maize</option>
+          <option>Onion</option>
+          <option>Potato</option>
+          <option>Rice</option>
+        </select>
+        <select id="filter-state" onchange="applyFilters()"
+          class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 bg-white">
+          <option value="">All states</option>
+          <option>Uttar Pradesh</option>
+          <option>Maharashtra</option>
+          <option>Punjab</option>
+          <option>Haryana</option>
+          <option>Rajasthan</option>
+          <option>Bihar</option>
+        </select>
+        <select id="filter-price" onchange="applyFilters()"
+          class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 bg-white">
+          <option value="">Any price</option>
+          <option value="0-1000">Under ₹1,000</option>
+          <option value="1000-2000">₹1,000 – ₹2,000</option>
+          <option value="2000-99999">Above ₹2,000</option>
+        </select>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="text-xs text-gray-400">Sort by</span>
+          <select id="sort-by" onchange="applyFilters()"
+            class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 bg-white">
+            <option value="newest">Newest first</option>
+            <option value="price-asc">Price: Low to high</option>
+            <option value="price-desc">Price: High to low</option>
+            <option value="distance">Distance: Nearest</option>
+            <option value="time">Time left</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- RESULTS INFO -->
+      <p id="results-info" class="text-xs text-gray-400 mb-4"></p>
+
+      <!-- CROPS GRID -->
+      <div id="crops-grid" class="grid grid-cols-2 gap-4 md:grid-cols-3"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">🔍</div>
+        <p class="text-sm font-medium text-gray-600">No crops found</p>
+        <p class="text-xs text-gray-400 mt-1">Try changing your filters or search term</p>
+      </div>
+
+    </main>
+  </div>
+
+<script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  // ============================================
+  // DUMMY DATA — Replace with fetch() in Week 8
+  // ============================================
+  async function handlePlaceBid(cropId, currentHighest) {
+    const amount = prompt(
+        `Place your bid!\n\nCurrent highest: ₹${currentHighest}/qtl\n\nEnter your bid amount (must be higher):`
+    )
+
+    if (!amount) return
+
+    if (parseFloat(amount) <= currentHighest) {
+        toast.error(`❌ Bid must be higher than ₹${currentHighest}/qtl!`)
+        return
+    }
+
+    try {
+        const result = await placeBid(cropId, parseFloat(amount))
+        if (result.id) {
+            toast.success(`✅ Bid of ₹${amount}/qtl placed successfully!\n\nYou will be notified if you are outbid.`)
+            loadCrops()
+        } else {
+            toast.error(result || "Failed to place bid!")
+        }
+    } catch(err) {
+        toast.error("Failed to place bid. Try again!")
+    }
+}
+  let allCrops = []
+
+async function loadCrops() {
+  try {
+    allCrops = await browseCrops()
+    applyFilters()
+  } catch(err) {
+    console.log("Error loading crops:", err)
+    toast.error("Failed to load crops. Try again!")
+  }
+}
+  // ============================================
+  // DISPLAY FUNCTIONS — Do not edit below this!
+  // ============================================
+
+  function renderPage() {
+    document.getElementById("nav-avatar").textContent   = buyerData.initials
+    document.getElementById("nav-name").textContent     = buyerData.name
+    document.getElementById("nav-location").textContent = "📍 " + buyerData.location
+    applyFilters()
+  }
+
+  function applyFilters() {
+    const search    = document.getElementById("search-input").value.toLowerCase()
+    const cropFilter  = document.getElementById("filter-crop").value
+    const stateFilter = document.getElementById("filter-state").value
+    const priceFilter = document.getElementById("filter-price").value
+    const sortBy      = document.getElementById("sort-by").value
+
+    let filtered = allCrops.filter(c => {
+      const matchSearch = c.name.toLowerCase().includes(search) || c.location.toLowerCase().includes(search)
+      const matchCrop   = !cropFilter  || c.name  === cropFilter
+      const matchState  = !stateFilter || c.state === stateFilter
+      let matchPrice    = true
+      if (priceFilter) {
+        const [min, max] = priceFilter.split("-").map(Number)
+        matchPrice = c.highestBid >= min && c.highestBid <= max
+      }
+      return matchSearch && matchCrop && matchState && matchPrice
+    })
+
+    // Sort
+    if (sortBy === "price-asc")   filtered.sort((a, b) => a.highestBid - b.highestBid)
+    if (sortBy === "price-desc")  filtered.sort((a, b) => b.highestBid - a.highestBid)
+    if (sortBy === "distance")    filtered.sort((a, b) => a.distance - b.distance)
+    if (sortBy === "time")        filtered.sort((a, b) => parseInt(a.timeLeft) - parseInt(b.timeLeft))
+
+    renderCrops(filtered)
+  }
+
+  function renderCrops(crops) {
+    const grid  = document.getElementById("crops-grid")
+    const empty = document.getElementById("empty-state")
+    const info  = document.getElementById("results-info")
+
+    info.textContent = `Showing ${crops.length} listing${crops.length !== 1 ? 's' : ''} across India`
+
+    if (crops.length === 0) {
+      grid.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    grid.innerHTML = crops.map(c => `
+      <div class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-sm transition">
+        <div class="h-20 flex items-center justify-center text-5xl" style="background:${c.bgColor}">${c.emoji}</div>
+        <div class="p-4">
+          <span class="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full">● Active</span>
+          <p class="text-sm font-semibold text-gray-900">${c.name} — ${c.quantity} ${c.unit}</p>
+          <p class="text-xs text-gray-400 mb-3">📍 ${c.state || c.district || "India"}</p>
+          <div class="flex justify-between mb-3">
+            <div class="text-center">
+             <p class="text-sm font-semibold text-gray-900">₹${(c.highestBid || c.basePrice || 0).toLocaleString()}</p>
+              <p class="text-xs text-gray-400">Highest bid</p>
+            </div>
+            <div class="text-center">
+              <p class="text-sm font-semibold text-gray-900">₹${c.basePrice.toLocaleString()}</p>
+              <p class="text-xs text-gray-400">Base price</p>
+            </div>
+            <div class="text-center">
+              <p class="text-sm font-semibold text-gray-900">${c.bids}</p>
+              <p class="text-xs text-gray-400">Bids</p>
+            </div>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button onclick="handlePlaceBid('${c.id}', ${c.highestBid || c.basePrice})"
+              class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg text-xs font-medium transition">
+              Place bid
+            </button>
+            <span class="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2 py-1.5 rounded-lg">⏱ ${c.timeLeft}</span>
+          </div>
+        </div>
+      </div>
+    `).join("")
+  }
+
+  loadCrops()
+</script>
+</body>
+</html>

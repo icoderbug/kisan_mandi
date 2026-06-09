@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kisan Mandi — Direct Farm to Buyer</title>
+  <link rel="stylesheet" href="css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .hero-bg {
+      background-image: url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1400&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-overlay {
+      background: rgba(10, 50, 20, 0.6);
+    }
+    .blur-bg {
+      backdrop-filter: blur(2px);
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800">
+
+  <!-- NAVBAR -->
+  <nav class="flex items-center justify-between px-8 py-4 border-b border-gray-100 bg-white sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-sm">K</span>
+      </div>
+      <span class="text-base font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="hidden md:flex items-center gap-6">
+      <a href="#how-it-works" class="text-sm text-gray-500 hover:text-green-600 transition">How it works</a>
+      <a href="#browse" class="text-sm text-gray-500 hover:text-green-600 transition">Browse crops</a>
+      <a href="#prices" class="text-sm text-gray-500 hover:text-green-600 transition">Price trends</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="login.html" class="text-sm text-gray-600 hover:text-green-600 transition">Login</a>
+      <a href="login.html" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition">Register</a>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="relative hero-bg min-h-[520px] flex items-center justify-center text-center overflow-hidden">
+    <div class="absolute inset-0 hero-overlay"></div>
+    <div class="relative z-10 px-6 py-16 max-w-2xl mx-auto">
+      <span class="inline-block bg-green-700 bg-opacity-50 border border-green-400 border-opacity-40 text-green-200 text-xs px-4 py-1.5 rounded-full mb-5">
+        India's direct farm-to-buyer marketplace
+      </span>
+      <h1 class="text-4xl md:text-5xl font-semibold text-white leading-tight mb-4">
+        Buy fresh crops directly<br>from <span class="text-green-400">Indian farmers</span>
+      </h1>
+      <p class="text-gray-300 text-base mb-8 leading-relaxed max-w-md mx-auto">
+        No middlemen. No exploitation. Farmers get fair prices, buyers get fresh produce — directly.
+      </p>
+      <div class="flex gap-3 justify-center flex-wrap">
+        <a href="login.html?role=farmer" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg text-sm font-medium transition">
+          I am a Farmer
+        </a>
+        <a href="login.html?role=buyer" class="bg-white bg-opacity-10 hover:bg-opacity-20 text-white border border-white border-opacity-30 px-6 py-3 rounded-lg text-sm transition">
+          I am a Buyer
+        </a>
+      </div>
+      <div class="flex gap-6 justify-center mt-8 flex-wrap">
+        <div class="flex items-center gap-2 text-xs text-gray-300">
+          <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+          12,400+ farmers
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-300">
+          <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+          18 states covered
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-300">
+          <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+          ₹4.2Cr+ transactions
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <section class="bg-green-700 py-6 px-8">
+    <div class="max-w-4xl mx-auto flex flex-wrap justify-center gap-10">
+      <div class="text-center">
+        <div class="text-2xl font-semibold text-white">12,400+</div>
+        <div class="text-xs text-green-200 mt-1">Farmers registered</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-semibold text-white">3,800+</div>
+        <div class="text-xs text-green-200 mt-1">Buyers active</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-semibold text-white">₹4.2Cr+</div>
+        <div class="text-xs text-green-200 mt-1">Transactions done</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-semibold text-white">18 states</div>
+        <div class="text-xs text-green-200 mt-1">Covered across India</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works" class="py-16 px-8 bg-white">
+    <div class="max-w-4xl mx-auto text-center mb-10">
+      <span class="text-xs text-green-600 font-medium uppercase tracking-widest">How it works</span>
+      <h2 class="text-2xl font-semibold text-gray-900 mt-2">Simple. Fair. Transparent.</h2>
+      <p class="text-sm text-gray-500 mt-2">Three steps from farm to delivery</p>
+    </div>
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-green-50 border border-green-100 rounded-xl p-6">
+        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium mb-4">1</div>
+        <h3 class="font-medium text-green-900 mb-2">Farmer lists crop</h3>
+        <p class="text-sm text-green-700 leading-relaxed">Upload crop details, photos, quantity and set a base price. Takes less than 2 minutes.</p>
+      </div>
+      <div class="bg-green-50 border border-green-100 rounded-xl p-6">
+        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium mb-4">2</div>
+        <h3 class="font-medium text-green-900 mb-2">Buyers bid live</h3>
+        <p class="text-sm text-green-700 leading-relaxed">Verified buyers place real-time bids. Farmer sees every bid live. Highest bid wins.</p>
+      </div>
+      <div class="bg-green-50 border border-green-100 rounded-xl p-6">
+        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium mb-4">3</div>
+        <h3 class="font-medium text-green-900 mb-2">Deal & delivery</h3>
+        <p class="text-sm text-green-700 leading-relaxed">Payment via UPI instantly. Farmer ships directly to buyer. No middleman involved.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOR WHOM -->
+  <section class="py-16 px-8 bg-gray-50">
+    <div class="max-w-4xl mx-auto text-center mb-10">
+      <span class="text-xs text-green-600 font-medium uppercase tracking-widest">Who is this for</span>
+      <h2 class="text-2xl font-semibold text-gray-900 mt-2">One platform, two sides</h2>
+      <p class="text-sm text-gray-500 mt-2">Built for both farmers and bulk buyers</p>
+    </div>
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+        <div class="text-3xl mb-3">🌾</div>
+        <h3 class="text-base font-semibold text-green-900 mb-3">For Farmers</h3>
+        <ul class="space-y-2">
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>List crops with photos in minutes</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>Get competitive bids from buyers</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>Receive payments directly via UPI</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>See live Govt. mandi rates to compare</li>
+        </ul>
+        <a href="login.html?role=farmer" class="mt-5 inline-block bg-green-600 hover:bg-green-700 text-white text-sm px-5 py-2.5 rounded-lg transition">Join as Farmer</a>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+        <div class="text-3xl mb-3">🛒</div>
+        <h3 class="text-base font-semibold text-amber-900 mb-3">For Buyers</h3>
+        <ul class="space-y-2">
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>Browse verified crop listings</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>Place real-time bids competitively</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>Filter by region, crop type, price</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>Track your orders end to end</li>
+        </ul>
+        <a href="login.html?role=buyer" class="mt-5 inline-block bg-amber-600 hover:bg-amber-700 text-white text-sm px-5 py-2.5 rounded-lg transition">Join as Buyer</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE LISTINGS PREVIEW -->
+  <section id="browse" class="py-16 px-8 bg-white">
+    <div class="max-w-4xl mx-auto text-center mb-10">
+      <span class="text-xs text-green-600 font-medium uppercase tracking-widest">Live listings</span>
+      <h2 class="text-2xl font-semibold text-gray-900 mt-2">Fresh crops available now</h2>
+      <p class="text-sm text-gray-500 mt-2">Updated in real-time as farmers list</p>
+    </div>
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
+        <div class="bg-green-50 h-24 flex items-center justify-center text-5xl">🌾</div>
+        <div class="p-4">
+          <h4 class="font-medium text-gray-900 text-sm">Wheat — 500 kg</h4>
+          <p class="text-green-600 font-semibold text-sm mt-1">₹2,100 / qtl</p>
+          <p class="text-xs text-gray-400 mt-0.5">Prayagraj, Uttar Pradesh</p>
+          <span class="inline-block mt-2 bg-orange-50 text-orange-700 text-xs px-2 py-0.5 rounded-md border border-orange-100">4 bids active</span>
+        </div>
+      </div>
+      <div class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
+        <div class="bg-red-50 h-24 flex items-center justify-center text-5xl">🍅</div>
+        <div class="p-4">
+          <h4 class="font-medium text-gray-900 text-sm">Tomato — 200 kg</h4>
+          <p class="text-green-600 font-semibold text-sm mt-1">₹800 / qtl</p>
+          <p class="text-xs text-gray-400 mt-0.5">Nashik, Maharashtra</p>
+          <span class="inline-block mt-2 bg-orange-50 text-orange-700 text-xs px-2 py-0.5 rounded-md border border-orange-100">2 bids active</span>
+        </div>
+      </div>
+      <div class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
+        <div class="bg-yellow-50 h-24 flex items-center justify-center text-5xl">🌽</div>
+        <div class="p-4">
+          <h4 class="font-medium text-gray-900 text-sm">Maize — 1 ton</h4>
+          <p class="text-green-600 font-semibold text-sm mt-1">₹1,450 / qtl</p>
+          <p class="text-xs text-gray-400 mt-0.5">Ludhiana, Punjab</p>
+          <span class="inline-block mt-2 bg-orange-50 text-orange-700 text-xs px-2 py-0.5 rounded-md border border-orange-100">7 bids active</span>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-8">
+      <a href="buyer/browse_crops.html" class="border border-green-600 text-green-600 hover:bg-green-50 px-6 py-2.5 rounded-lg text-sm transition">View all listings →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-green-900 text-green-100 py-10 px-8">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between gap-6">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-7 h-7 bg-green-500 rounded-lg flex items-center justify-center">
+            <span class="text-white font-semibold text-xs">K</span>
+          </div>
+          <span class="font-semibold text-white">Kisan Mandi</span>
+        </div>
+        <p class="text-xs text-green-300 max-w-xs leading-relaxed">Empowering Indian farmers with direct market access. No middlemen, fair prices, fresh produce.</p>
+      </div>
+      <div class="flex gap-12">
+        <div>
+          <h4 class="text-xs font-semibold text-white uppercase tracking-widest mb-3">Platform</h4>
+          <ul class="space-y-2 text-xs text-green-300">
+            <li><a href="#" class="hover:text-white transition">How it works</a></li>
+            <li><a href="#" class="hover:text-white transition">Browse crops</a></li>
+            <li><a href="#" class="hover:text-white transition">Price trends</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs font-semibold text-white uppercase tracking-widest mb-3">Support</h4>
+          <ul class="space-y-2 text-xs text-green-300">
+            <li><a href="#" class="hover:text-white transition">Help center</a></li>
+            <li><a href="#" class="hover:text-white transition">Contact us</a></li>
+            <li><a href="#" class="hover:text-white transition">Privacy policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-4xl mx-auto border-t border-green-800 mt-8 pt-6 text-xs text-green-400 text-center">
+      © 2025 Kisan Mandi · Made with ❤️ for Indian farmers
+    </div>
+  </footer>
+
+</body>
+</html>

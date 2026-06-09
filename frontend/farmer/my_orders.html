@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders — Kisan Mandi</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../css/toast.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b7280; cursor: pointer; transition: .2s; text-decoration: none; }
+    .nav-item:hover { background: #f0fdf4; color: #16a34a; }
+    .nav-item.active { background: #f0fdf4; color: #16a34a; font-weight: 500; }
+    .filter-active { background: #f0fdf4 !important; color: #16a34a !important; border-color: #bbf7d0 !important; font-weight: 500; }
+    .step-line { flex: 1; height: 1.5px; background: #e5e7eb; margin-bottom: 20px; }
+    .step-line.done { background: #16a34a; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 bg-green-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-semibold text-xs">K</span>
+      </div>
+      <span class="text-sm font-semibold text-gray-900">Kisan Mandi</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="nav-avatar" class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold text-xs"></div>
+      <div>
+        <p id="nav-name" class="text-xs font-medium text-gray-900"></p>
+        <p id="nav-location" class="text-xs text-gray-400"></p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-52 min-h-screen bg-white border-r border-gray-100 fixed top-12 left-0 flex flex-col py-4 px-3">
+      <nav class="flex flex-col gap-1 flex-1">
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="add_crop.html" class="nav-item">➕ Add crop</a>
+        <a href="my_listings.html" class="nav-item">🌾 My listings</a>
+        <a href="my_bids.html" class="nav-item">🔨 Bids</a>
+        <a href="my_orders.html" class="nav-item active">📦 Orders</a>
+      </nav>
+      <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
+        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
+        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-52 flex-1 p-7">
+
+      <div class="mb-5">
+        <h1 class="text-lg font-semibold text-gray-900">My orders</h1>
+        <p class="text-xs text-gray-400 mt-1">All completed deals and payment status</p>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-2xl font-semibold text-gray-900" id="stat-total"></div>
+          <div class="text-xs text-gray-400 mt-1">Total orders</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-2xl font-semibold text-green-600" id="stat-earned"></div>
+          <div class="text-xs text-gray-400 mt-1">Total earned</div>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="text-2xl font-semibold text-amber-500" id="stat-pending"></div>
+          <div class="text-xs text-gray-400 mt-1">Payment pending</div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="flex gap-2 mb-5 flex-wrap">
+        <button onclick="filterOrders('all')"     id="filter-all"     class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition filter-active">All</button>
+        <button onclick="filterOrders('pending')" id="filter-pending" class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Payment pending</button>
+        <button onclick="filterOrders('completed')" id="filter-completed" class="filter-btn px-4 py-1.5 rounded-full text-xs border border-gray-200 bg-white text-gray-500 transition">Completed</button>
+      </div>
+
+      <!-- ORDERS CONTAINER -->
+      <div id="orders-container" class="flex flex-col gap-4"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden text-center py-16">
+        <div class="text-5xl mb-4">📦</div>
+        <p class="text-sm font-medium text-gray-600">No orders found</p>
+        <p class="text-xs text-gray-400 mt-1">Orders will appear here once buyers accept your listings</p>
+      </div>
+
+    </main>
+  </div>
+  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
+<script>
+  let orders = []
+
+  const steps = ["Order placed", "Payment", "Shipped", "Delivered"]
+
+  async function loadOrders() {
+    // Setup navbar
+    document.getElementById("nav-avatar").textContent   = (getName() || "F")[0].toUpperCase()
+    document.getElementById("nav-name").textContent     = getName() || "Farmer"
+    document.getElementById("nav-location").textContent = "📍 " + (getLocation() || "")
+
+    try {
+      orders = await getFarmerOrders()
+
+      const totalEarned  = orders
+        .filter(o => o.paymentStatus === "PAID")
+        .reduce((s, o) => s + (o.totalAmount || 0), 0)
+      const pendingCount = orders.filter(o => o.paymentStatus === "PENDING").length
+
+      document.getElementById("stat-total").textContent   = orders.length
+      document.getElementById("stat-earned").textContent  = "₹" + totalEarned.toLocaleString()
+      document.getElementById("stat-pending").textContent = pendingCount
+
+      updateFilterCounts()
+      renderOrders("all")
+    } catch(err) {
+      console.log("Error loading orders:", err)
+    }
+  }
+
+  function updateFilterCounts() {
+    const pending   = orders.filter(o => o.paymentStatus === "PENDING").length
+    const completed = orders.filter(o => o.deliveryStatus === "DELIVERED").length
+    document.getElementById("filter-all").textContent       = `All (${orders.length})`
+    document.getElementById("filter-pending").textContent   = `Payment pending (${pending})`
+    document.getElementById("filter-completed").textContent = `Completed (${completed})`
+  }
+
+  function filterOrders(filter) {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("filter-active"))
+    document.getElementById("filter-" + filter).classList.add("filter-active")
+    renderOrders(filter)
+  }
+
+  function getStatusInfo(order) {
+    if (order.paymentStatus === "PENDING")      return { color: "#d97706", text: "Payment pending", badge: "Awaiting UPI",   badgeClass: "bg-amber-50 text-amber-700 border-amber-200" }
+    if (order.deliveryStatus === "DELIVERED")   return { color: "#16a34a", text: "Completed",        badge: "Paid ✓",        badgeClass: "bg-green-50 text-green-700 border-green-200" }
+    if (order.deliveryStatus === "SHIPPED")     return { color: "#2563eb", text: "In transit",       badge: "Paid ✓",        badgeClass: "bg-green-50 text-green-700 border-green-200" }
+    return { color: "#6b7280", text: "Processing", badge: "Processing", badgeClass: "bg-gray-50 text-gray-600 border-gray-200" }
+  }
+
+  function getStepsDone(order) {
+    if (order.deliveryStatus === "DELIVERED") return 4
+    if (order.deliveryStatus === "SHIPPED")   return 3
+    if (order.paymentStatus  === "PAID")      return 2
+    return 1
+  }
+
+  function getCropEmoji(name) {
+    const n = (name || "").toLowerCase()
+    if (n.includes("wheat"))  return "🌾"
+    if (n.includes("tomato")) return "🍅"
+    if (n.includes("maize"))  return "🌽"
+    if (n.includes("onion"))  return "🧅"
+    if (n.includes("potato")) return "🥔"
+    return "🌱"
+  }
+
+  function renderOrders(filter) {
+    const filtered = filter === "all" ? orders : orders.filter(o => {
+      if (filter === "pending")   return o.paymentStatus === "PENDING"
+      if (filter === "completed") return o.deliveryStatus === "DELIVERED"
+      return true
+    })
+
+    const container = document.getElementById("orders-container")
+    const empty     = document.getElementById("empty-state")
+
+    if (filtered.length === 0) {
+      container.innerHTML = ""
+      empty.classList.remove("hidden")
+      return
+    }
+
+    empty.classList.add("hidden")
+    container.innerHTML = filtered.map(order => {
+      const status    = getStatusInfo(order)
+      const stepsDone = getStepsDone(order)
+
+      const stepperHTML = steps.map((step, i) => {
+        const num      = i + 1
+        const isDone   = num < stepsDone
+        const isActive = num === stepsDone
+        const dotClass = isDone ? "bg-green-500 text-white" : isActive ? "bg-amber-500 text-white" : "bg-gray-200 text-gray-400"
+        const lblClass = isDone ? "text-green-600" : isActive ? "text-amber-500" : "text-gray-400"
+        const lineClass = num < stepsDone ? "done" : ""
+        return `
+          <div class="flex flex-col items-center">
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold mb-1 ${dotClass}">
+              ${isDone ? "✓" : num}
+            </div>
+            <div class="text-xs text-center ${lblClass}" style="max-width:60px">${step}</div>
+          </div>
+          ${num < steps.length ? `<div class="step-line ${lineClass}"></div>` : ""}
+        `
+      }).join("")
+
+      return `
+        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-gray-50">
+            <span class="text-xs text-gray-400">Order #${order.orderNumber || order.id}</span>
+            <span class="text-xs text-gray-400">${order.orderDate ? new Date(order.orderDate).toLocaleDateString("en-IN") : ""}</span>
+          </div>
+          <div class="flex items-start justify-between px-5 py-4 border-b border-gray-50">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">${getCropEmoji(order.cropName)}</span>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">${order.cropName} — ${order.quantity} ${order.unit}</p>
+                <p class="text-xs text-gray-400 mt-0.5">📍 Buyer: ${order.buyerName}, ${order.buyerLocation}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold text-gray-900">₹${(order.finalPrice || 0).toLocaleString()}/qtl</p>
+              <p class="text-sm font-semibold mt-0.5 ${order.paymentStatus === 'PENDING' ? 'text-amber-500' : 'text-green-600'}">
+                ₹${(order.totalAmount || 0).toLocaleString()} ${order.paymentStatus === 'PAID' ? '✓' : ''}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center px-5 py-4 border-b border-gray-50">
+            ${stepperHTML}
+          </div>
+          <div class="flex items-center justify-between px-5 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full" style="background:${status.color}"></div>
+              <span class="text-xs font-medium" style="color:${status.color}">${status.text}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full border ${status.badgeClass} ml-1">${status.badge}</span>
+            </div>
+          </div>
+        </div>
+      `
+    }).join("")
+  }
+
+  loadOrders()
+</script>
+<script src="../js/api.js"></script>
+</body>
+</html>
