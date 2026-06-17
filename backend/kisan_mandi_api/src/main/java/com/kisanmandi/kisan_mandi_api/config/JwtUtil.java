@@ -1,27 +1,27 @@
 package com.kisanmandi.kisan_mandi_api.config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 // This class creates and verifies JWT tokens
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+   @Value("${jwt.secret:PrateekKisanMandiSuperSecretJWTKey2024}")
+private String secret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
+@Value("${jwt.expiration:86400000}")
+private Long expiration;
     // Get the signing key from secret
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
