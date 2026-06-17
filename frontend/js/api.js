@@ -2,7 +2,7 @@
 // Base URL: http://localhost:8080/api
 // ============================================
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = "https://kisan-mandi-api.onrender.com/api"
 
 // ============================================
 // TOKEN HELPERS
