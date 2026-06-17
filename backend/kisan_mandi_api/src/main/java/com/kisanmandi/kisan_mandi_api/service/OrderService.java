@@ -29,9 +29,6 @@ public class OrderService {
     private BidRepository bidRepository;
 
     @Autowired
-    private EmailService emailService;
-
-    @Autowired
     private UserRepository userRepository;
 
     // Farmer accepts highest bid — creates an order
@@ -82,17 +79,6 @@ public class OrderService {
         highestBid.setStatus("WON");
         bidRepository.save(highestBid);
 
-        // Email to buyer — bid won
-        if (buyer.getEmail() != null) {
-            emailService.sendBidWonEmail(
-                    buyer.getEmail(),
-                    buyer.getFirstName(),
-                    crop.getName(),
-                    highestBid.getAmount(),
-                    order.getOrderNumber()
-            );
-        }
-
         return orderRepository.save(order);
     }
 
@@ -113,19 +99,6 @@ public class OrderService {
         order.setPaymentStatus(status);
         if (status.equals("PAID")) {
             order.setPaymentDate(LocalDateTime.now());
-        }
-        // Email to farmer — payment received
-        if (status.equals("PAID")) {
-            User farmer = userRepository.findById(order.getFarmerId()).orElse(null);
-            if (farmer != null && farmer.getEmail() != null) {
-                emailService.sendPaymentReceivedEmail(
-                        farmer.getEmail(),
-                        farmer.getFirstName(),
-                        order.getCropName(),
-                        order.getTotalAmount(),
-                        order.getOrderNumber()
-                );
-            }
         }
         return orderRepository.save(order);
     }

@@ -32,7 +32,6 @@ public class SecurityConfig {
                         // Public endpoints — no token needed
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/crops/browse").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
 
                         // Farmer only endpoints
                         .requestMatchers("/api/crops/my/**").hasRole("FARMER")
@@ -61,18 +60,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ FIX: Added more origins so it works on different ports & setups
         config.setAllowedOrigins(List.of(
-                "http://localhost:5500",     // VS Code Live Server
-                "http://127.0.0.1:5500",    // VS Code Live Server alternate
-                "http://localhost:5501",     // Sometimes Live Server uses 5501
+                "http://localhost:5500",
+                "http://127.0.0.1:5500",
+                "http://localhost:5501",
                 "http://127.0.0.1:5501",
-                "http://localhost:3000",     // React
-                "http://localhost:8080",     // Direct
-                "http://127.0.0.1:8080",
-                "http://localhost:27017",
-                "http://kisan-mandi-api.onrender.com"
-                
+                "http://localhost:3000",
+                "https://icoderbug.github.io"  // GitHub Pages URL
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

@@ -1,5 +1,11 @@
 package com.kisanmandi.kisan_mandi_api.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.kisanmandi.kisan_mandi_api.dto.BidRequest;
 import com.kisanmandi.kisan_mandi_api.model.Bid;
 import com.kisanmandi.kisan_mandi_api.model.Crop;
@@ -7,11 +13,6 @@ import com.kisanmandi.kisan_mandi_api.model.User;
 import com.kisanmandi.kisan_mandi_api.repository.BidRepository;
 import com.kisanmandi.kisan_mandi_api.repository.CropRepository;
 import com.kisanmandi.kisan_mandi_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class BidService {
@@ -21,9 +22,6 @@ public class BidService {
 
     @Autowired
     private CropRepository cropRepository;
-
-    @Autowired
-    private EmailService emailService;
 
     @Autowired
     private UserRepository userRepository;
@@ -73,34 +71,7 @@ public class BidService {
         crop.setUpdatedAt(LocalDateTime.now());
         cropRepository.save(crop);
 
-        // Send email to farmer about new bid
-        User farmer = userRepository.findById(crop.getFarmerId())
-                .orElse(null);
-        if (farmer != null && farmer.getEmail() != null) {
-            emailService.sendNewBidEmail(
-                    farmer.getEmail(),
-                    farmer.getFirstName(),
-                    crop.getName(),
-                    request.getAmount(),
-                    buyer.getFirstName() + " " + buyer.getLastName()
-            );
-        }
 
-// Send outbid email to previous highest bidder
-        if (crop.getHighestBidderId() != null &&
-                !crop.getHighestBidderId().equals(buyerId)) {
-            User previousBidder = userRepository
-                    .findById(crop.getHighestBidderId())
-                    .orElse(null);
-            if (previousBidder != null && previousBidder.getEmail() != null) {
-                emailService.sendOutbidEmail(
-                        previousBidder.getEmail(),
-                        previousBidder.getFirstName(),
-                        crop.getName(),
-                        request.getAmount()
-                );
-            }
-        }
 
         return bidRepository.save(bid);
     }
