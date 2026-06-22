@@ -31,16 +31,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints — no token needed
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/crops/browse").permitAll()
-
-                        // Farmer only endpoints
-                        .requestMatchers("/api/crops/my/**").hasRole("FARMER")
-                        .requestMatchers("/api/crops/add").hasRole("FARMER")
-
-                        // Admin only endpoints
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Everything else needs a valid token
+                        .requestMatchers("/api/crops/**").permitAll()
+                        .requestMatchers("/api/bids/**").permitAll()
+                        .requestMatchers("/api/orders/**").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
@@ -59,15 +53,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "http://localhost:5501",
-                "http://127.0.0.1:5501",
-                "http://localhost:3000",
-                "https://icoderbug.github.io"  // GitHub Pages URL
-        ));
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

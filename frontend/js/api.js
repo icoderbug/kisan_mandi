@@ -2,7 +2,11 @@
 // Base URL: http://localhost:8080/api
 // ============================================
 
-const BASE_URL = "https://kisan-mandi-api.onrender.com/api"
+// Automatically use correct URL based on environment
+const BASE_URL = window.location.hostname === "127.0.0.1" || 
+                 window.location.hostname === "localhost"
+    ? "http://localhost:8080/api"
+    : "https://kisan-mandi-api.onrender.com/api"
 
 // ============================================
 // TOKEN HELPERS
