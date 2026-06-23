@@ -253,7 +253,7 @@ kisanmandi/
 **Prateek Singh**
 - 📧 prateeksinghpk129@gmail.com
 - 🎓 B.Tech CSE — SRMCEM Lucknow (2023-2027)
-- 💼 [LinkedIn](www.linkedin.com/in/prateek-singh-860b90288)
+- 💼 <a href="www.linkedin.com/in/prateek-singh-860b90288">[LinkedIn]</a>
 - 🐙 [GitHub](https://github.com/icoderbug)
 
 ---
