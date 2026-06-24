@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Browse Crops — Kisan Mandi</title>
   <link rel="stylesheet" href="../css/output.css" />
-  <link rel="stylesheet" href="../css/toast.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -13,7 +12,6 @@
     .nav-item:hover { background: #fef9f0; color: #d97706; }
     .nav-item.active { background: #fef9f0; color: #d97706; font-weight: 500; }
     input:focus, select:focus { outline: none; border-color: #d97706 !important; }
-
   </style>
 </head>
 <body class="bg-gray-50">
@@ -45,8 +43,7 @@
         <a href="my_orders.html" class="nav-item">📦 My orders</a>
       </nav>
       <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
-        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
-        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+        <a href="../login.html" onclick="logout()" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
       </div>
     </aside>
 
@@ -104,7 +101,6 @@
             <option value="newest">Newest first</option>
             <option value="price-asc">Price: Low to high</option>
             <option value="price-desc">Price: High to low</option>
-            <option value="distance">Distance: Nearest</option>
             <option value="time">Time left</option>
           </select>
         </div>
@@ -126,82 +122,93 @@
     </main>
   </div>
 
-<script src="../js/toast.js"></script>
 <script src="../js/api.js"></script>
 <script>
-  // ============================================
-  // DUMMY DATA — Replace with fetch() in Week 8
-  // ============================================
-  async function handlePlaceBid(cropId, currentHighest) {
-    const amount = prompt(
-        `Place your bid!\n\nCurrent highest: ₹${currentHighest}/qtl\n\nEnter your bid amount (must be higher):`
-    )
 
-    if (!amount) return
-
-    if (parseFloat(amount) <= currentHighest) {
-        toast.error(`❌ Bid must be higher than ₹${currentHighest}/qtl!`)
-        return
-    }
-
-    try {
-        const result = await placeBid(cropId, parseFloat(amount))
-        if (result.id) {
-            toast.success(`✅ Bid of ₹${amount}/qtl placed successfully!\n\nYou will be notified if you are outbid.`)
-            loadCrops()
-        } else {
-            toast.error(result || "Failed to place bid!")
-        }
-    } catch(err) {
-        toast.error("Failed to place bid. Try again!")
-    }
-}
   let allCrops = []
 
-async function loadCrops() {
-  try {
-    allCrops = await browseCrops()
-    applyFilters()
-  } catch(err) {
-    console.log("Error loading crops:", err)
-    toast.error("Failed to load crops. Try again!")
+  // Setup navbar
+  function setupNavbar() {
+    document.getElementById("nav-avatar").textContent   = (getName() || "B")[0].toUpperCase()
+    document.getElementById("nav-name").textContent     = getName() || "Buyer"
+    document.getElementById("nav-location").textContent = "📍 " + (getLocation() || "")
   }
-}
-  // ============================================
-  // DISPLAY FUNCTIONS — Do not edit below this!
-  // ============================================
 
-  function renderPage() {
-    document.getElementById("nav-avatar").textContent   = buyerData.initials
-    document.getElementById("nav-name").textContent     = buyerData.name
-    document.getElementById("nav-location").textContent = "📍 " + buyerData.location
-    applyFilters()
+  // Get crop emoji based on name
+  function getCropEmoji(name) {
+    const n = (name || "").toLowerCase()
+    if (n.includes("wheat"))  return "🌾"
+    if (n.includes("rice"))   return "🌾"
+    if (n.includes("tomato")) return "🍅"
+    if (n.includes("maize") || n.includes("corn")) return "🌽"
+    if (n.includes("onion"))  return "🧅"
+    if (n.includes("potato")) return "🥔"
+    if (n.includes("mango"))  return "🥭"
+    if (n.includes("banana")) return "🍌"
+    if (n.includes("apple"))  return "🍎"
+    if (n.includes("grapes")) return "🍇"
+    return "🌱"
+  }
+
+  // Get background color based on crop
+  function getCropBg(name) {
+    const n = (name || "").toLowerCase()
+    if (n.includes("wheat") || n.includes("rice"))   return "#fef9f0"
+    if (n.includes("tomato"))                         return "#fff1f2"
+    if (n.includes("maize") || n.includes("corn"))   return "#fefce8"
+    if (n.includes("onion"))                          return "#fdf4ff"
+    if (n.includes("potato"))                         return "#f0fdf4"
+    return "#f0fdf4"
+  }
+
+  // Get time left from bidEndTime
+  function getTimeLeft(bidEndTime) {
+    if (!bidEndTime) return "No deadline"
+    const diff = new Date(bidEndTime) - new Date()
+    if (diff <= 0) return "Closed"
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours < 1) return "< 1h left"
+    if (hours < 24) return hours + "h left"
+    const days = Math.floor(hours / 24)
+    return days + "d left"
+  }
+
+  async function loadCrops() {
+    setupNavbar()
+    try {
+      allCrops = await browseCrops()
+      applyFilters()
+    } catch(err) {
+      console.log("Error loading crops:", err)
+    }
   }
 
   function applyFilters() {
-    const search    = document.getElementById("search-input").value.toLowerCase()
+    const search      = document.getElementById("search-input").value.toLowerCase()
     const cropFilter  = document.getElementById("filter-crop").value
     const stateFilter = document.getElementById("filter-state").value
     const priceFilter = document.getElementById("filter-price").value
     const sortBy      = document.getElementById("sort-by").value
 
     let filtered = allCrops.filter(c => {
-      const matchSearch = c.name.toLowerCase().includes(search) || c.location.toLowerCase().includes(search)
-      const matchCrop   = !cropFilter  || c.name  === cropFilter
+      const location    = (c.state || c.district || "").toLowerCase()
+      const matchSearch = (c.name || "").toLowerCase().includes(search) ||
+                          location.includes(search)
+      const matchCrop   = !cropFilter  || (c.name || "").toLowerCase() === cropFilter.toLowerCase()
       const matchState  = !stateFilter || c.state === stateFilter
       let matchPrice    = true
       if (priceFilter) {
         const [min, max] = priceFilter.split("-").map(Number)
-        matchPrice = c.highestBid >= min && c.highestBid <= max
+        const price = c.highestBid || c.basePrice || 0
+        matchPrice = price >= min && price <= max
       }
       return matchSearch && matchCrop && matchState && matchPrice
     })
 
     // Sort
-    if (sortBy === "price-asc")   filtered.sort((a, b) => a.highestBid - b.highestBid)
-    if (sortBy === "price-desc")  filtered.sort((a, b) => b.highestBid - a.highestBid)
-    if (sortBy === "distance")    filtered.sort((a, b) => a.distance - b.distance)
-    if (sortBy === "time")        filtered.sort((a, b) => parseInt(a.timeLeft) - parseInt(b.timeLeft))
+    if (sortBy === "price-asc")  filtered.sort((a, b) => (a.highestBid || a.basePrice || 0) - (b.highestBid || b.basePrice || 0))
+    if (sortBy === "price-desc") filtered.sort((a, b) => (b.highestBid || b.basePrice || 0) - (a.highestBid || a.basePrice || 0))
+    if (sortBy === "time")       filtered.sort((a, b) => new Date(a.bidEndTime) - new Date(b.bidEndTime))
 
     renderCrops(filtered)
   }
@@ -222,35 +229,64 @@ async function loadCrops() {
     empty.classList.add("hidden")
     grid.innerHTML = crops.map(c => `
       <div class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-sm transition">
-        <div class="h-20 flex items-center justify-center text-5xl" style="background:${c.bgColor}">${c.emoji}</div>
+        <div class="h-20 flex items-center justify-center text-5xl" style="background:${getCropBg(c.name)}">
+          ${getCropEmoji(c.name)}
+        </div>
         <div class="p-4">
           <span class="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full">● Active</span>
-          <p class="text-sm font-semibold text-gray-900">${c.name} — ${c.quantity} ${c.unit}</p>
-          <p class="text-xs text-gray-400 mb-3">📍 ${c.state || c.district || "India"}</p>
+          <p class="text-sm font-semibold text-gray-900 mt-1">${c.name || "Crop"} — ${c.quantity || 0} ${c.unit || "kg"}</p>
+          <p class="text-xs text-gray-400 mb-3">📍 ${c.state || c.district || "India"} · 👨‍🌾 ${c.farmerName || "Farmer"}</p>
           <div class="flex justify-between mb-3">
             <div class="text-center">
-             <p class="text-sm font-semibold text-gray-900">₹${(c.highestBid || c.basePrice || 0).toLocaleString()}</p>
+              <p class="text-sm font-semibold text-gray-900">₹${(c.highestBid || c.basePrice || 0).toLocaleString()}</p>
               <p class="text-xs text-gray-400">Highest bid</p>
             </div>
             <div class="text-center">
-              <p class="text-sm font-semibold text-gray-900">₹${c.basePrice.toLocaleString()}</p>
+              <p class="text-sm font-semibold text-gray-900">₹${(c.basePrice || 0).toLocaleString()}</p>
               <p class="text-xs text-gray-400">Base price</p>
             </div>
             <div class="text-center">
-              <p class="text-sm font-semibold text-gray-900">${c.bids}</p>
+              <p class="text-sm font-semibold text-gray-900">${c.totalBids || 0}</p>
               <p class="text-xs text-gray-400">Bids</p>
             </div>
           </div>
           <div class="flex gap-2 items-center">
-            <button onclick="handlePlaceBid('${c.id}', ${c.highestBid || c.basePrice})"
+            <button onclick="handlePlaceBid('${c.id}', ${c.highestBid || c.basePrice || 0})"
               class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg text-xs font-medium transition">
               Place bid
             </button>
-            <span class="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2 py-1.5 rounded-lg">⏱ ${c.timeLeft}</span>
+            <span class="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2 py-1.5 rounded-lg">
+              ⏱ ${getTimeLeft(c.bidEndTime)}
+            </span>
           </div>
         </div>
       </div>
     `).join("")
+  }
+
+  async function handlePlaceBid(cropId, currentHighest) {
+    const amount = prompt(
+      `Place your bid!\n\nCurrent highest: ₹${currentHighest}/qtl\n\nEnter your bid amount (must be higher):`
+    )
+
+    if (!amount) return
+
+    if (parseFloat(amount) <= currentHighest) {
+      alert(`❌ Bid must be higher than ₹${currentHighest}/qtl!`)
+      return
+    }
+
+    try {
+      const result = await placeBid(cropId, parseFloat(amount))
+      if (result.id) {
+        alert(`✅ Bid of ₹${amount}/qtl placed successfully!`)
+        loadCrops()
+      } else {
+        alert(result || "Failed to place bid!")
+      }
+    } catch(err) {
+      alert("Failed to place bid. Try again!")
+    }
   }
 
   loadCrops()
