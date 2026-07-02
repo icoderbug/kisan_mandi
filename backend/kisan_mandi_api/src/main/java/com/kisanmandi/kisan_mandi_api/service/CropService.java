@@ -43,6 +43,7 @@ public class CropService {
         crop.setBidEndTime(request.getBidEndTime());
         crop.setStatus("ACTIVE");
         crop.setTotalBids(0);
+        crop.setPhotos(request.getPhotos());
         crop.setCreatedAt(LocalDateTime.now());
         crop.setUpdatedAt(LocalDateTime.now());
 
