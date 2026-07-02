@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Crop — Kisan Mandi</title>
   <link rel="stylesheet" href="../css/output.css" />
-  <link rel="stylesheet" href="../css/toast.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -17,6 +16,8 @@
     .upload-box:hover { border-color: #16a34a; background: #f0fdf4; }
     .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
     .preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 0.5px solid #e5e7eb; }
+    .upload-progress { display: none; margin-top: 10px; }
+    .upload-progress.show { display: block; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -49,8 +50,7 @@
         <a href="my_orders.html" class="nav-item">📦 Orders</a>
       </nav>
       <div class="border-t border-gray-100 pt-3 flex flex-col gap-1">
-        <a href="../login.html" onclick="logout()" class="nav-item">⚙️ Logout</a>
-        <a href="../login.html" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
+        <a href="../login.html" onclick="logout()" class="nav-item hover:bg-red-50 hover:text-red-500" style="color:#ef4444">🚪 Logout</a>
       </div>
     </aside>
 
@@ -144,7 +144,7 @@
         </div>
 
         <div id="mandi-tip" class="bg-green-50 border border-green-100 rounded-lg px-3 py-2 text-xs text-green-700">
-          <!-- filled by JS -->
+          💡 Select a crop to see today's mandi rate and set the right base price.
         </div>
       </div>
 
@@ -175,9 +175,22 @@
           <div class="text-3xl mb-2">📷</div>
           <p class="text-sm font-medium text-gray-600">Click to upload crop photos</p>
           <p class="text-xs text-gray-400 mt-1">JPG, PNG up to 5MB · Max 4 photos</p>
-          <input id="photo-input" type="file" accept="image/*" multiple class="hidden" onchange="previewPhotos(event)" />
+          <input id="photo-input" type="file" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload(event)" />
         </div>
+
+        <!-- Upload Progress -->
+        <div id="upload-progress" class="upload-progress">
+          <div class="flex items-center gap-2 mt-3">
+            <div class="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+            <p id="upload-status" class="text-xs text-green-600">Uploading photos to cloud...</p>
+          </div>
+        </div>
+
+        <!-- Photo Preview Grid -->
         <div id="photo-preview" class="preview-grid hidden"></div>
+
+        <!-- Uploaded count -->
+        <p id="upload-count" class="text-xs text-gray-400 mt-2 hidden"></p>
       </div>
 
       <!-- TIPS BOX -->
@@ -192,7 +205,7 @@
 
       <!-- ACTION BUTTONS -->
       <div class="flex flex-col gap-3 mb-10">
-        <button onclick="submitListing()"
+        <button id="submit-btn" onclick="submitListing()"
           class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-sm font-medium transition">
           🌾 Submit listing
         </button>
@@ -205,17 +218,19 @@
     </main>
   </div>
 
-  <script src="../js/toast.js"></script>
+<script src="../js/api.js"></script>
 <script>
-  // ============================================
-  // DUMMY DATA — Replace with fetch() in Week 8
-  // ============================================
-  const farmerData = {
-    name: "Ramesh Kumar",
-    initials: "RK",
-    location: "Prayagraj, Uttar Pradesh",
-  }
 
+  // ============================================
+  // CLOUDINARY CONFIG
+  // ============================================
+  const CLOUDINARY_CLOUD_NAME = "deuw2lrfx"
+  const CLOUDINARY_UPLOAD_PRESET = "kisan_mandi"
+  const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
+
+  // ============================================
+  // MANDI RATES — dummy data
+  // ============================================
   const mandiRates = {
     "Wheat":     { price: 2050, change: "+₹30"  },
     "Rice":      { price: 3200, change: "+₹50"  },
@@ -227,15 +242,18 @@
     "Cotton":    { price: 6500, change: "+₹100" },
     "Soybean":   { price: 4200, change: "-₹30"  },
   }
-  // ============================================
-  // DISPLAY FUNCTIONS — Do not edit below this!
-  // ============================================
 
+  // Uploaded photo URLs from Cloudinary
+  let uploadedPhotoUrls = []
+
+  // ============================================
+  // SETUP
+  // ============================================
   function renderPage() {
-    document.getElementById("nav-avatar").textContent   = farmerData.initials
-    document.getElementById("nav-name").textContent     = farmerData.name
-    document.getElementById("nav-location").textContent = "📍 " + farmerData.location
-    document.getElementById("location-main").textContent = farmerData.location
+    document.getElementById("nav-avatar").textContent    = (getName() || "F")[0].toUpperCase()
+    document.getElementById("nav-name").textContent      = getName() || "Farmer"
+    document.getElementById("nav-location").textContent  = "📍 " + (getLocation() || "")
+    document.getElementById("location-main").textContent = getLocation() || ""
     updateMandiTip()
   }
 
@@ -250,32 +268,79 @@
     }
   }
 
-  function previewPhotos(event) {
+  // ============================================
+  // CLOUDINARY PHOTO UPLOAD
+  // ============================================
+  async function handlePhotoUpload(event) {
     const files = Array.from(event.target.files).slice(0, 4)
-    const preview = document.getElementById("photo-preview")
-    preview.innerHTML = ""
-    preview.classList.remove("hidden")
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = e => {
+    if (files.length === 0) return
+
+    // Show progress
+    document.getElementById("upload-progress").classList.add("show")
+    document.getElementById("upload-status").textContent = `Uploading ${files.length} photo(s) to cloud...`
+    document.getElementById("photo-preview").classList.add("hidden")
+    document.getElementById("submit-btn").disabled = true
+    document.getElementById("submit-btn").textContent = "⏳ Uploading photos..."
+
+    uploadedPhotoUrls = []
+
+    try {
+      // Upload each photo to Cloudinary
+      for (let i = 0; i < files.length; i++) {
+        document.getElementById("upload-status").textContent =
+          `Uploading photo ${i + 1} of ${files.length}...`
+
+        const formData = new FormData()
+        formData.append("file", files[i])
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET)
+
+        const response = await fetch(CLOUDINARY_URL, {
+          method: "POST",
+          body: formData
+        })
+
+        const data = await response.json()
+
+        if (data.secure_url) {
+          uploadedPhotoUrls.push(data.secure_url)
+        }
+      }
+
+      // Show previews
+      const preview = document.getElementById("photo-preview")
+      preview.innerHTML = ""
+      preview.classList.remove("hidden")
+
+      uploadedPhotoUrls.forEach(url => {
         const img = document.createElement("img")
-        img.src = e.target.result
+        img.src = url
         img.className = "preview-img"
         preview.appendChild(img)
-      }
-      reader.readAsDataURL(file)
-    })
+      })
+
+      // Update status
+      document.getElementById("upload-progress").classList.remove("show")
+      document.getElementById("upload-count").textContent =
+        `✅ ${uploadedPhotoUrls.length} photo(s) uploaded successfully!`
+      document.getElementById("upload-count").classList.remove("hidden")
+
+      // Re-enable submit button
+      document.getElementById("submit-btn").disabled = false
+      document.getElementById("submit-btn").textContent = "🌾 Submit listing"
+
+    } catch(err) {
+      console.log("Upload error:", err)
+      document.getElementById("upload-progress").classList.remove("show")
+      document.getElementById("upload-status").textContent = "❌ Upload failed. Try again!"
+      document.getElementById("submit-btn").disabled = false
+      document.getElementById("submit-btn").textContent = "🌾 Submit listing"
+    }
   }
-  
-    // ============================================
-    // TODO Week 8: Replace this with fetch() POST
-    // fetch('http://localhost:8080/api/crops', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(newCrop)
-    // })
-    // ============================================
-    async function submitListing() {
+
+  // ============================================
+  // SUBMIT LISTING
+  // ============================================
+  async function submitListing() {
     const cropName = document.getElementById("crop-name").value
     const qty      = document.getElementById("crop-qty").value
     const price    = document.getElementById("crop-price").value
@@ -285,8 +350,8 @@
     const bidtime  = document.getElementById("crop-bidtime").value
 
     if (!cropName || !qty || !price) {
-        toast.warning("Please fill crop name, quantity and base price!")
-        return
+      alert("Please fill crop name, quantity and base price!")
+      return
     }
 
     const hours = parseInt(bidtime)
@@ -294,30 +359,38 @@
     bidEndTime.setHours(bidEndTime.getHours() + hours)
 
     try {
-        const result = await addCrop({
-            name: cropName,
-            category: document.getElementById("crop-category").value,
-            quantity: parseFloat(qty),
-            unit: unit,
-            description: desc,
-            basePrice: parseFloat(price),
-            village: village,
-            district: getLocation(),
-            state: getLocation(),
-            harvestDate: new Date().toISOString(),
-            bidEndTime: bidEndTime.toISOString()
-        })
-        toast.success("✅ Crop listed successfully!")
-        window.location.href = "my_listings.html"
+      document.getElementById("submit-btn").textContent = "⏳ Submitting..."
+      document.getElementById("submit-btn").disabled = true
+
+      const result = await addCrop({
+        name: cropName,
+        category: document.getElementById("crop-category").value,
+        quantity: parseFloat(qty),
+        unit: unit,
+        description: desc,
+        basePrice: parseFloat(price),
+        village: village,
+        district: getLocation(),
+        state: getLocation(),
+        harvestDate: new Date().toISOString(),
+        bidEndTime: bidEndTime.toISOString(),
+        photos: uploadedPhotoUrls   // ← Cloudinary URLs saved here!
+      })
+
+      alert("✅ Crop listed successfully!")
+      window.location.href = "my_listings.html"
+
     } catch(err) {
-        toast.error("Failed to list crop. Is Spring Boot running?")
+      console.log("Error:", err)
+      alert("Failed to list crop. Is Spring Boot running?")
+      document.getElementById("submit-btn").disabled = false
+      document.getElementById("submit-btn").textContent = "🌾 Submit listing"
     }
-}
+  }
 
   document.getElementById("crop-name").addEventListener("change", updateMandiTip)
 
   renderPage()
 </script>
-<script src="../js/api.js"></script>
 </body>
 </html>

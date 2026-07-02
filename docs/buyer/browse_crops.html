@@ -229,8 +229,11 @@
     empty.classList.add("hidden")
     grid.innerHTML = crops.map(c => `
       <div class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-sm transition">
-        <div class="h-20 flex items-center justify-center text-5xl" style="background:${getCropBg(c.name)}">
-          ${getCropEmoji(c.name)}
+        <div class="h-20 flex items-center justify-center overflow-hidden" style="background:${getCropBg(c.name)}">
+    ${c.photos && c.photos.length > 0
+        ? `<img src="${c.photos[0]}" class="w-full h-full object-cover" alt="${c.name}"/>`
+        : `<span class="text-5xl">${getCropEmoji(c.name)}</span>`
+    }
         </div>
         <div class="p-4">
           <span class="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full">● Active</span>
